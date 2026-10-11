@@ -1,26 +1,260 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Every component reads colors, radii and shadows from here, so the whole
+ * UI stays consistent and can be re-themed in one place.
+ *   primary  — deep teal: trust, calm, "home"
+ *   accent   — warm amber: energy, used for the main call-to-action buttons
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.99 0.004 95);
+  --foreground: oklch(0.21 0.03 250);
+  --surface: oklch(1 0 0);
+  --surface-foreground: var(--foreground);
+  --muted: oklch(0.965 0.007 240);
+  --muted-foreground: oklch(0.52 0.03 250);
+  --border: oklch(0.92 0.01 250);
+  --input: oklch(0.89 0.012 250);
+  --ring: oklch(0.6 0.118 184.7);
+
+  --primary: oklch(0.511 0.096 186.4);
+  --primary-hover: oklch(0.45 0.085 187);
+  --primary-foreground: oklch(0.99 0.01 180);
+  --primary-soft: oklch(0.96 0.03 180);
+  --primary-soft-foreground: oklch(0.386 0.063 188.4);
+
+  --accent: oklch(0.77 0.17 65);
+  --accent-hover: oklch(0.72 0.17 58);
+  --accent-foreground: oklch(0.25 0.05 50);
+  --accent-soft: oklch(0.97 0.04 85);
+
+  --success: oklch(0.6 0.15 155);
+  --success-soft: oklch(0.96 0.04 155);
+  --destructive: oklch(0.577 0.215 27.3);
+  --destructive-soft: oklch(0.97 0.02 25);
+
+  --hero-from: oklch(0.3 0.06 192);
+  --hero-to: oklch(0.42 0.085 186);
+
+  --radius: 0.875rem;
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 250 / 0.04), 0 4px 16px -4px oklch(0.2 0.02 250 / 0.08);
+  --shadow-lift: 0 2px 4px oklch(0.2 0.02 250 / 0.04), 0 16px 40px -12px oklch(0.2 0.04 250 / 0.18);
+}
+
+.dark {
+  --background: oklch(0.17 0.02 230);
+  --foreground: oklch(0.96 0.01 220);
+  --surface: oklch(0.21 0.02 230);
+  --muted: oklch(0.25 0.02 230);
+  --muted-foreground: oklch(0.72 0.02 230);
+  --border: oklch(0.3 0.02 230);
+  --input: oklch(0.34 0.02 230);
+  --primary: oklch(0.7 0.12 182);
+  --primary-hover: oklch(0.75 0.12 182);
+  --primary-foreground: oklch(0.2 0.04 190);
+  --primary-soft: oklch(0.28 0.05 188);
+  --primary-soft-foreground: oklch(0.88 0.06 180);
+  --accent-soft: oklch(0.3 0.05 70);
+  --success-soft: oklch(0.28 0.05 155);
+  --destructive-soft: oklch(0.3 0.06 25);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-hero-from: var(--hero-from);
+  --color-hero-to: var(--hero-to);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-lift: var(--shadow-lift);
+
+  /* Latin glyphs come from the first family, Georgian ones fall through to Noto Sans Georgian. */
+  --font-sans: var(--font-inter), var(--font-georgian), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-georgian), ui-sans-serif, system-ui, sans-serif;
+
+  --animate-fade-up: fade-up 0.5s ease-out both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-soft-foreground);
+  }
+}
+
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheet-left {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sheet-right {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@utility checkbox {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid var(--color-input);
+  border-radius: 0.375rem;
+  background: var(--color-surface);
+  transition:
+    background-color 150ms,
+    border-color 150ms;
+
+  &::before {
+    content: "";
+    width: 0.75rem;
+    height: 0.75rem;
+    transform: scale(0);
+    transition: transform 120ms ease-out;
+    background: var(--color-primary-foreground);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  &:checked {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+
+  &:checked::before {
+    transform: scale(1);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
