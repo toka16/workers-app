@@ -78,19 +78,9 @@ pnpm test:e2e                 # Playwright, desktop + mobile, against http://loc
 
 ## Deploying (Vercel Hobby + Supabase Free)
 
-1. **Supabase**: create a project, then
-   ```bash
-   pnpm exec supabase login
-   pnpm exec supabase link --project-ref <ref>
-   pnpm exec supabase db push        # applies supabase/migrations (not the seed)
-   ```
-   In *Authentication → URL configuration* set **Site URL** to your Vercel domain and add
-   `https://<your-domain>/**` to **Redirect URLs**. Configure a real SMTP sender for production e-mails.
-2. **Vercel**: import the repository and set the environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL` – project URL
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` – publishable (anon) key
-   - `NEXT_PUBLIC_SITE_URL` – e.g. `https://xelosani.vercel.app`
-3. Deploy. Public pages are prerendered at build time, so the database must be reachable from the build.
+Pushing to the `dev` branch runs `.github/workflows/deploy-dev.yml`: CI → `supabase db push` → Vercel
+deployment. One-time setup of Supabase, Vercel and GitHub secrets is described step by step in
+[docs/deployment.md](docs/deployment.md).
 
 Free-tier notes: images are resized in the browser before upload (Supabase image transformations are a paid
 feature, and Next.js image optimization is disabled to stay within Vercel's Hobby quota). Free Supabase projects

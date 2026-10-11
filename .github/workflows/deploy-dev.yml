@@ -1,0 +1,62 @@
+name: Deploy dev
+
+# Every push to `dev`: checks -> database migrations -> Vercel deployment.
+# Migrations run first so the new code never meets an old schema.
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+# Never run two deployments at once; a newer push waits for the running one.
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  migrate:
+    name: Apply database migrations
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+      # Applies only new files from supabase/migrations. The seed (demo data) is never pushed.
+      - run: pnpm exec supabase db push
+
+  deploy:
+    name: Deploy to Vercel
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Environment variables are managed in Vercel (Project -> Settings -> Environment Variables).
+      - run: pnpm dlx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - run: pnpm dlx vercel@latest build --prod --token="$VERCEL_TOKEN"
+      - id: deploy
+        run: echo "url=$(pnpm dlx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN")" >> "$GITHUB_OUTPUT"
