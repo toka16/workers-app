@@ -8,7 +8,7 @@ export function SiteFooter() {
   const t = useTranslations();
   return (
     <footer className="mt-auto border-t border-border bg-surface">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr]">
+      <div className="container-page grid grid-cols-1 gap-10 py-12 md:grid-cols-[2fr_1fr_1fr]">
         <div className="grid max-w-sm content-start gap-4">
           <Logo />
           <p className="text-sm leading-relaxed text-muted-foreground">{t("footer.about")}</p>

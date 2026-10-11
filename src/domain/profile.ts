@@ -1,3 +1,4 @@
+import { slugify } from "@/lib/slugify";
 import type { WorkerProfile } from "./models";
 
 export type CompletenessItem = "name" | "headline" | "avatar" | "contact" | "city" | "category" | "service" | "portfolio";
@@ -31,4 +32,19 @@ export function completenessPercent(profile: WorkerProfile): number {
 export function missingForPublish(profile: WorkerProfile): CompletenessItem[] {
   const checklist = profileChecklist(profile);
   return REQUIRED_FOR_PUBLISH.filter((item) => !checklist[item]);
+}
+
+/** Placeholder address given at sign-up (see handle_new_user in the migrations). */
+const DEFAULT_SLUG = /^worker-[0-9a-f]{10}$/;
+
+/**
+ * Profile addresses are generated, not edited: the sign-up placeholder is replaced by one based on the
+ * worker's name the first time they save a name, and stays fixed afterwards so shared links keep working.
+ * Returns the addresses to try in order (later ones are fallbacks when an address is taken).
+ */
+export function slugCandidates(profile: Pick<WorkerProfile, "id" | "slug">, fullName: string): string[] {
+  if (!DEFAULT_SLUG.test(profile.slug)) return [profile.slug];
+  const base = slugify(fullName);
+  if (base.length < 3) return [profile.slug];
+  return [base, `${base}-${profile.id.replace(/-/g, "").slice(0, 4)}`, profile.slug];
 }

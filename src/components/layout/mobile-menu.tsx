@@ -19,7 +19,7 @@ export function MobileMenu() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("nav.menu")}>
+        <Button variant="ghost" size="icon" className="xl:hidden" aria-label={t("nav.menu")}>
           <Menu className="size-6" />
         </Button>
       </DialogTrigger>

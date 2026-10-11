@@ -36,7 +36,6 @@ describe("search params", () => {
 describe("profileSchema", () => {
   const base = {
     fullName: " Giorgi ",
-    slug: "Giorgi-Beridze",
     headline: "",
     bio: "",
     yearsExperience: "",
@@ -48,18 +47,17 @@ describe("profileSchema", () => {
   it("normalizes form values", () => {
     const parsed = profileSchema.parse(base);
     expect(parsed.fullName).toBe("Giorgi");
-    expect(parsed.slug).toBe("giorgi-beridze");
+    expect(parsed).not.toHaveProperty("slug"); // addresses are generated, never user input
     expect(parsed.yearsExperience).toBeNull();
     expect(parsed.cityIds).toEqual([1, 2]);
     expect(parsed.contacts.phone).toBe("+995555123456");
     expect(parsed.contacts.whatsapp).toBeNull();
   });
 
-  it("rejects invalid contacts and slugs with i18n keys", () => {
-    const result = profileSchema.safeParse({ ...base, slug: "a--b", contacts: { ...base.contacts, website: "not a url" } });
+  it("rejects invalid contacts with i18n keys", () => {
+    const result = profileSchema.safeParse({ ...base, contacts: { ...base.contacts, website: "not a url" } });
     expect(result.success).toBe(false);
     const messages = Object.fromEntries(result.error!.issues.map((i) => [i.path.join("."), i.message]));
-    expect(messages.slug).toBe("invalid_slug");
     expect(messages["contacts.website"]).toBe("invalid_url");
   });
 });

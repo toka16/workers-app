@@ -45,9 +45,9 @@ export default async function LandingPage() {
         <div aria-hidden className="absolute -top-32 -right-24 -z-10 size-[28rem] rounded-full bg-accent/30 blur-[110px]" />
         <div aria-hidden className="absolute -bottom-40 -left-24 -z-10 size-[30rem] rounded-full bg-primary/60 blur-[120px]" />
 
-        <div className="container-page grid items-center gap-10 pt-12 pb-24 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:pt-20 lg:pb-32">
-          <div className="grid gap-7">
-            <Badge variant="glass" size="md" className="w-fit animate-fade-up">
+        <div className="container-page grid grid-cols-1 items-center gap-10 pt-12 pb-24 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:pt-20 lg:pb-32">
+          <div className="grid min-w-0 grid-cols-1 gap-7">
+            <Badge variant="glass" size="md" className="w-fit max-w-full animate-fade-up whitespace-normal">
               <BadgeCheck className="text-accent" /> {t("landing.badge")}
             </Badge>
             <h1 className="animate-fade-up text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl [animation-delay:60ms]">
@@ -123,12 +123,12 @@ export default async function LandingPage() {
             <Reveal key={c.slug} delay={Math.min(i, 8) * 0.03}>
               <Link
                 href={`/workers?category=${c.slug}`}
-                className="group flex h-full items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift sm:p-5"
+                className="group flex h-full flex-col items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift sm:flex-row sm:items-center sm:p-5"
               >
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground sm:size-12">
                   <CategoryIcon icon={c.icon} className="size-5 sm:size-6" />
                 </span>
-                <span className="text-sm leading-snug font-semibold sm:text-base">{localized(c.name, locale)}</span>
+                <span className="min-w-0 text-sm leading-snug font-semibold break-words sm:text-base">{localized(c.name, locale)}</span>
               </Link>
             </Reveal>
           ))}
@@ -139,11 +139,10 @@ export default async function LandingPage() {
       <section id="how-it-works" className="scroll-mt-20 border-y border-border bg-surface py-20 sm:py-24">
         <div className="container-page">
           <SectionHeading title={t("landing.howTitle")} subtitle={t("landing.howSubtitle")} centered />
-          <ol className="mt-12 grid gap-6 md:grid-cols-3">
+          <ol className="mx-auto mt-12 grid grid-cols-1 max-w-4xl gap-6 md:grid-cols-2">
             {[
               { icon: Search, title: t("landing.step1Title"), text: t("landing.step1Text") },
-              { icon: Camera, title: t("landing.step2Title"), text: t("landing.step2Text") },
-              { icon: PhoneCall, title: t("landing.step3Title"), text: t("landing.step3Text") },
+              { icon: PhoneCall, title: t("landing.step2Title"), text: t("landing.step2Text") },
             ].map(({ icon: Icon, title, text }, i) => (
               <Reveal key={title} delay={i * 0.1}>
                 <li className="relative h-full rounded-2xl bg-background p-6 ring-1 ring-border">
@@ -172,7 +171,7 @@ export default async function LandingPage() {
               </Link>
             </Button>
           </SectionHeading>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((w, i) => (
               <Reveal key={w.id} delay={(i % 3) * 0.08}>
                 <WorkerCard worker={w} categories={categories} cities={cities} className="h-full" />
@@ -192,7 +191,7 @@ export default async function LandingPage() {
         <Reveal>
           <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-hero-from to-hero-to px-6 py-12 text-white shadow-lift sm:px-12 sm:py-16">
             <div aria-hidden className="absolute -top-24 -right-16 -z-10 size-80 rounded-full bg-accent/35 blur-[90px]" />
-            <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
+            <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
               <div className="grid gap-5">
                 <h2 className="text-3xl font-extrabold sm:text-4xl">{t("landing.ctaTitle")}</h2>
                 <p className="max-w-xl text-lg text-white/80">{t("landing.ctaSubtitle")}</p>

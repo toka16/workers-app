@@ -1,8 +1,8 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { ChevronDown, RotateCcw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input, NativeSelect } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import type { Category, City } from "@/domain/models";
 import { countActiveFilters } from "@/domain/schemas";
 import { localized } from "@/i18n/localized";
+import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./category-icon";
 import { useSearch } from "./search-shell";
 
@@ -41,10 +42,17 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
   const toggle = (list: string[], slug: string) =>
     list.includes(slug) ? list.filter((s) => s !== slug) : [...list, slug];
 
+  const selectedNames = <T extends Category | City>(items: T[], slugs: string[]) =>
+    items.filter((i) => slugs.includes(i.slug)).map((i) => localized(i.name, locale));
+
   return (
-    <div className="grid gap-7">
-      <FilterGroup title={t("categories")}>
-        <div className="grid gap-0.5 pr-1 lg:max-h-72 lg:overflow-y-auto">
+    <div className="grid gap-6">
+      <div className="grid gap-3">
+        <FilterDropdown
+          title={t("categories")}
+          selected={selectedNames(categories, filters.categories)}
+          emptyLabel={t("allServices")}
+        >
           {categories.map((c) => (
             <label key={c.slug} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
               <Checkbox
@@ -55,22 +63,22 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
               {localized(c.name, locale)}
             </label>
           ))}
-        </div>
-      </FilterGroup>
+        </FilterDropdown>
 
-      <FilterGroup title={t("cities")}>
-        <div className="grid grid-cols-2 gap-0.5 pr-1 lg:max-h-64 lg:grid-cols-1 lg:overflow-y-auto">
-          {cities.map((c) => (
-            <label key={c.slug} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
-              <Checkbox
-                checked={filters.cities.includes(c.slug)}
-                onChange={() => update({ cities: toggle(filters.cities, c.slug) })}
-              />
-              {localized(c.name, locale)}
-            </label>
-          ))}
-        </div>
-      </FilterGroup>
+        <FilterDropdown title={t("cities")} selected={selectedNames(cities, filters.cities)} emptyLabel={t("allCities")}>
+          <div className="grid grid-cols-2 lg:grid-cols-1">
+            {cities.map((c) => (
+              <label key={c.slug} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
+                <Checkbox
+                  checked={filters.cities.includes(c.slug)}
+                  onChange={() => update({ cities: toggle(filters.cities, c.slug) })}
+                />
+                {localized(c.name, locale)}
+              </label>
+            ))}
+          </div>
+        </FilterDropdown>
+      </div>
 
       <div className="grid gap-2">
         <Label htmlFor={`${id}-price`}>{t("priceMax")}</Label>
@@ -118,11 +126,51 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
   );
 }
 
-function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+/**
+ * Collapsible section: closed it shows a one-line summary of the selection, open it shows the full list
+ * inline (no inner scroll area, so the page or sheet is the only thing that scrolls).
+ */
+function FilterDropdown({
+  title,
+  selected,
+  emptyLabel,
+  children,
+}: {
+  title: string;
+  selected: string[];
+  emptyLabel: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const contentId = useId();
   return (
-    <fieldset className="grid gap-2">
-      <legend className="mb-2 text-sm font-semibold">{title}</legend>
-      {children}
-    </fieldset>
+    <div className="rounded-xl border border-border bg-surface">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={contentId}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left transition-colors hover:bg-muted/60"
+      >
+        <span className="grid min-w-0 flex-1">
+          <span className="text-sm font-semibold">{title}</span>
+          <span className={cn("truncate text-sm", selected.length ? "text-primary" : "text-muted-foreground")}>
+            {selected.length ? selected.join(", ") : emptyLabel}
+          </span>
+        </span>
+        {selected.length > 0 && (
+          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            {selected.length}
+          </span>
+        )}
+        <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <fieldset id={contentId} className="grid gap-0.5 border-t border-border p-1.5">
+          <legend className="sr-only">{title}</legend>
+          {children}
+        </fieldset>
+      )}
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle, Save } from "lucide-react";
+import { Copy, ExternalLink, LoaderCircle, Save } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -16,20 +16,20 @@ import { CategoryIcon } from "@/components/workers/category-icon";
 import type { Category, City, WorkerProfile } from "@/domain/models";
 import { profileSchema, type ProfileInput } from "@/domain/schemas";
 import { localized } from "@/i18n/localized";
-import { useRouter } from "@/i18n/navigation";
-import { slugify } from "@/lib/slugify";
+import { Link, useRouter } from "@/i18n/navigation";
 import { AvatarUploader } from "./avatar-uploader";
 import { ChipPicker } from "./chip-picker";
 
 interface Props {
   profile: WorkerProfile;
+  /** Absolute public URL of the profile, shown read-only. */
+  profileUrl: string;
   categories: Category[];
   cities: City[];
 }
 
 type FormValues = {
   fullName: string;
-  slug: string;
   headline: string;
   bio: string;
   yearsExperience: string;
@@ -38,9 +38,10 @@ type FormValues = {
   contacts: Record<"phone" | "whatsapp" | "viber" | "telegram" | "email" | "facebook" | "website", string>;
 };
 
-export function ProfileForm({ profile, categories, cities }: Props) {
+export function ProfileForm({ profile, profileUrl, categories, cities }: Props) {
   const t = useTranslations("dashboard.profile");
   const tc = useTranslations("common");
+  const tp = useTranslations("profile");
   const locale = useLocale();
   const router = useRouter();
 
@@ -49,7 +50,6 @@ export function ProfileForm({ profile, categories, cities }: Props) {
     resolver: zodResolver(profileSchema) as never,
     defaultValues: {
       fullName: profile.fullName,
-      slug: profile.slug,
       headline: profile.headline,
       bio: profile.bio,
       yearsExperience: profile.yearsExperience?.toString() ?? "",
@@ -66,20 +66,14 @@ export function ProfileForm({ profile, categories, cities }: Props) {
       },
     },
   });
-  const { register, control, formState, setValue, getFieldState } = form;
+  const { register, control, formState } = form;
   const { errors, isSubmitting } = formState;
   const { formError, handle } = useActionErrors(form.setError);
 
-  // Suggest a readable address from the name until the worker edits it themselves.
-  const nameField = register("fullName", {
-    onChange: (e) => {
-      const slugState = getFieldState("slug");
-      if (!slugState.isDirty && profile.slug.startsWith("worker-")) {
-        const suggestion = slugify(e.target.value);
-        if (suggestion.length >= 3) setValue("slug", `${suggestion}-${profile.id.slice(0, 4)}`);
-      }
-    },
-  });
+  async function copyProfileUrl() {
+    await navigator.clipboard.writeText(profileUrl);
+    toast.success(tp("copied"));
+  }
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (handle(await saveProfileAction(values))) {
@@ -96,7 +90,7 @@ export function ProfileForm({ profile, categories, cities }: Props) {
   );
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-6">
+    <form onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-6">
       {formError && <Alert variant="error">{formError}</Alert>}
 
       <Card>
@@ -105,9 +99,9 @@ export function ProfileForm({ profile, categories, cities }: Props) {
         </CardHeader>
         <CardContent className="grid gap-6">
           <AvatarUploader userId={profile.id} name={profile.fullName} url={profile.avatar?.url ?? null} />
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field id="fullName" label={t("fullName")} error={errors.fullName?.message}>
-              <Input id="fullName" autoComplete="name" aria-invalid={!!errors.fullName} {...nameField} />
+              <Input id="fullName" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName")} />
             </Field>
             <Field id="yearsExperience" label={t("yearsExperience")} error={errors.yearsExperience?.message} optional>
               <Input id="yearsExperience" inputMode="numeric" aria-invalid={!!errors.yearsExperience} {...register("yearsExperience")} />
@@ -119,19 +113,24 @@ export function ProfileForm({ profile, categories, cities }: Props) {
           <Field id="bio" label={t("bio")} error={errors.bio?.message} optional>
             <Textarea id="bio" rows={6} placeholder={t("bioPlaceholder")} maxLength={4000} aria-invalid={!!errors.bio} {...register("bio")} />
           </Field>
-          <Field id="slug" label={t("slug")} error={errors.slug?.message} hint={t("slugHint")}>
-            <div className="flex items-stretch overflow-hidden rounded-lg border border-input bg-muted focus-within:border-primary focus-within:ring-4 focus-within:ring-ring/15">
-              <span className="flex items-center px-3 text-sm text-muted-foreground select-none">/workers/</span>
-              <input
-                id="slug"
-                className="h-11 min-w-0 flex-1 bg-surface px-3 text-base outline-none sm:text-sm"
-                autoCapitalize="none"
-                spellCheck={false}
-                aria-invalid={!!errors.slug}
-                {...register("slug")}
-              />
+          <div className="grid gap-2">
+            <span className="text-sm leading-none font-medium">{t("slug")}</span>
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/60 py-1 pr-1 pl-3.5">
+              <span className="w-0 flex-1 truncate text-sm" title={profileUrl}>
+                {profileUrl}
+              </span>
+              <Button type="button" variant="ghost" size="icon-sm" onClick={copyProfileUrl} aria-label={t("copyLink")}>
+                <Copy />
+              </Button>
+              <Button asChild variant="ghost" size="icon-sm" aria-label={tc("viewProfile")}>
+                {/* Drafts aren't public yet, so open the owner's preview instead. */}
+                <Link href={profile.isPublished ? `/workers/${profile.slug}` : "/dashboard/preview"} target="_blank">
+                  <ExternalLink />
+                </Link>
+              </Button>
             </div>
-          </Field>
+            <p className="text-sm text-muted-foreground">{t("slugHint")}</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -181,7 +180,7 @@ export function ProfileForm({ profile, categories, cities }: Props) {
           <CardTitle>{t("contacts")}</CardTitle>
           <CardDescription>{t("contactsHint")}</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {contact("phone", t("phone"), { type: "tel", inputMode: "tel", autoComplete: "tel", placeholder: "+995 5XX XX XX XX" })}
           {contact("whatsapp", t("whatsapp"), { type: "tel", inputMode: "tel", placeholder: "+995 5XX XX XX XX" })}
           {contact("viber", t("viber"), { type: "tel", inputMode: "tel", placeholder: "+995 5XX XX XX XX" })}

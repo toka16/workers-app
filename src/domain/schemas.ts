@@ -58,17 +58,8 @@ export const resetPasswordSchema = z
   .object({ password: passwordSchema, confirm: z.string() })
   .refine((v) => v.password === v.confirm, { message: "passwords_mismatch", path: ["confirm"] });
 
-export const slugSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .min(3, "slug_too_short")
-  .max(80, "too_long")
-  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "invalid_slug");
-
 export const profileSchema = z.object({
   fullName: z.string().trim().min(2, "required").max(120, "too_long"),
-  slug: slugSchema,
   headline: z.string().trim().max(160, "too_long"),
   bio: z.string().trim().max(4000, "too_long"),
   yearsExperience: optionalNumber(80, { int: true }),

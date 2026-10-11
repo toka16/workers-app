@@ -76,13 +76,11 @@
     "categoriesSubtitle": "From a dripping tap to a full renovation.",
     "viewAll": "View all",
     "howTitle": "How it works",
-    "howSubtitle": "Three steps, zero paperwork.",
+    "howSubtitle": "Two steps, zero paperwork.",
     "step1Title": "Search",
     "step1Text": "Choose the service and your city. Filter by price, experience or photos.",
-    "step2Title": "Compare",
-    "step2Text": "Look through profiles, previous work and price lists side by side.",
-    "step3Title": "Call directly",
-    "step3Text": "Phone, WhatsApp, Viber or Telegram — agree on the details yourselves.",
+    "step2Title": "Call directly",
+    "step2Text": "Phone, WhatsApp, Viber or Telegram — agree on the details yourselves.",
     "featuredTitle": "Featured pros",
     "featuredSubtitle": "Complete profiles with photos and prices.",
     "statsWorkers": "pros listed",
@@ -124,7 +122,9 @@
     "emptyText": "Try a nearby city, a broader category or remove the price limit.",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {page} of {total}"
+    "page": "Page {page} of {total}",
+    "allServices": "All services",
+    "allCities": "All cities"
   },
   "profile": {
     "about": "About",
@@ -235,7 +235,7 @@
       "bioPlaceholder": "Describe your experience, the jobs you take on and why clients like working with you.",
       "yearsExperience": "Years of experience",
       "slug": "Profile address",
-      "slugHint": "Latin letters, numbers and dashes.",
+      "slugHint": "Created automatically from your name. Share it with clients.",
       "workArea": "Services & area",
       "categories": "Service categories",
       "categoriesHint": "Choose up to 8.",
@@ -249,7 +249,8 @@
       "contactEmail": "Public e-mail",
       "facebook": "Facebook page URL",
       "website": "Website",
-      "savedToast": "Profile saved"
+      "savedToast": "Profile saved",
+      "copyLink": "Copy link"
     },
     "services": {
       "title": "Services & prices",
@@ -311,15 +312,12 @@
     "invalid_phone": "Enter a valid phone number, e.g. +995 555 12 34 56",
     "invalid_url": "Enter a full link starting with https://",
     "invalid_telegram": "Use your Telegram username, e.g. @name",
-    "invalid_slug": "Use lowercase Latin letters, numbers and single dashes",
-    "slug_too_short": "At least 3 characters",
     "invalid_number": "Enter a valid number",
     "too_many_categories": "Choose at most 8 categories",
     "price_required": "Enter a price or choose “negotiable”",
     "price_range_invalid": "Must be greater than the starting price",
     "file_too_large": "Image is too large",
-    "file_type": "Only JPG, PNG or WebP images",
-    "slug_taken": "This address is already taken"
+    "file_type": "Only JPG, PNG or WebP images"
   },
   "errors": {
     "unknown": "Something went wrong. Please try again.",

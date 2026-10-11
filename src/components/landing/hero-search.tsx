@@ -32,7 +32,7 @@ export function HeroSearch({ categories, cities }: { categories: Category[]; cit
   return (
     <form
       onSubmit={submit}
-      className="grid gap-2 rounded-2xl bg-surface p-2 shadow-lift ring-1 ring-black/5 sm:grid-cols-[1fr_1fr_auto] sm:gap-0 sm:divide-x sm:divide-border"
+      className="grid grid-cols-1 gap-2 rounded-2xl bg-surface p-2 shadow-lift ring-1 ring-black/5 sm:grid-cols-[1fr_1fr_auto] sm:gap-0 sm:divide-x sm:divide-border"
     >
       <label className="relative flex items-center rounded-xl bg-muted/60 sm:bg-transparent">
         <Wrench className="pointer-events-none absolute left-3.5 size-5 text-primary" aria-hidden />

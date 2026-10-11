@@ -38,7 +38,7 @@ export function WorkerProfileView({ worker, categories }: { worker: WorkerProfil
         </div>
       </div>
 
-      <div className="container-page -mt-16 grid gap-8 lg:grid-cols-[1fr_22rem]">
+      <div className="container-page -mt-16 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="grid min-w-0 content-start gap-8">
           {/* Header */}
           <header className="grid gap-4">

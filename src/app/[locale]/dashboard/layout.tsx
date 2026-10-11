@@ -32,7 +32,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/[local
         </div>
       </header>
 
-      <div className="container-page grid flex-1 gap-6 py-6 lg:grid-cols-[14rem_1fr] lg:gap-10 lg:py-10">
+      <div className="container-page grid grid-cols-1 flex-1 gap-6 py-6 lg:grid-cols-[14rem_1fr] lg:gap-10 lg:py-10">
         <aside className="lg:sticky lg:top-26 lg:self-start">
           <Suspense fallback={<DashboardNav />}>
             <ActiveDashboardNav />

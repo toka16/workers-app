@@ -49,9 +49,9 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/[loca
 
   return (
     <SearchShell filters={filters}>
-      <div className="grid gap-8 lg:grid-cols-[17rem_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[17rem_1fr]">
         <aside className="hidden lg:block">
-          <Card className="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto p-5">
+          <Card className="p-5">
             <FilterPanel categories={categories} cities={cities} />
           </Card>
         </aside>
@@ -60,7 +60,7 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/[loca
           <SearchToolbar categories={categories} cities={cities} total={results.total} />
           <PendingArea>
             {results.items.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {results.items.map((worker, i) => (
                   <WorkerCard key={worker.id} worker={worker} categories={categories} cities={cities} priority={i < 3} />
                 ))}
@@ -85,12 +85,12 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/[loca
 
 function SearchSkeleton() {
   return (
-    <div className="grid gap-8 lg:grid-cols-[17rem_1fr]">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[17rem_1fr]">
       <Skeleton className="hidden h-[32rem] rounded-2xl lg:block" />
       <div className="grid content-start gap-6">
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-5 w-40" />
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <WorkerCardSkeleton key={i} />
           ))}

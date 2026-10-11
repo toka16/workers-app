@@ -5,7 +5,7 @@ import { Logo } from "@/components/layout/logo";
 
 export default function AuthLayout({ children }: LayoutProps<"/[locale]">) {
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[1fr_minmax(0,36rem)]">
+    <div className="grid grid-cols-1 min-h-dvh lg:grid-cols-[1fr_minmax(0,36rem)]">
       <div className="flex flex-col">
         <header className="flex items-center justify-between p-4 sm:p-6">
           <Logo />

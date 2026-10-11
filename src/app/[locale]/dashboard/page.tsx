@@ -37,7 +37,7 @@ export default async function DashboardOverview() {
         subtitle={t("overviewSubtitle")}
       />
 
-      <div className="grid items-start gap-6 xl:grid-cols-[1.3fr_1fr]">
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.3fr_1fr]">
         <Card className="overflow-hidden">
           <div className="flex flex-wrap items-center gap-5 p-5 sm:p-6">
             <Avatar name={profile.fullName || "?"} src={profile.avatar?.url} className="size-16 text-xl" />
@@ -104,7 +104,7 @@ export default async function DashboardOverview() {
       </div>
 
       <h2 className="mt-10 mb-4 text-lg font-bold">{t("quickLinks")}</h2>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { href: "/dashboard/profile", icon: UserRound, label: t("nav.profile"), meta: profile.headline || "—" },
           { href: "/dashboard/services", icon: Briefcase, label: t("nav.services"), meta: String(profile.services.length) },

@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { DomainError } from "@/domain/errors";
 import type { Service } from "@/domain/models";
+import { slugCandidates } from "@/domain/profile";
 import { captionSchema, passwordSchema, profileSchema, serviceSchema } from "@/domain/schemas";
 import { getRepositories } from "@/infrastructure/container.server";
 import { TAGS } from "@/lib/data/public";
@@ -38,23 +39,34 @@ export async function saveProfileAction(input: unknown): Promise<ActionResult> {
   try {
     const { user, repos } = await authorized();
     const before = await repos.workers.getById(user.id);
-    await repos.workers.updateProfile(user.id, {
-      slug: data.slug,
-      fullName: data.fullName,
-      headline: data.headline,
-      bio: data.bio,
-      yearsExperience: data.yearsExperience,
-      contacts: data.contacts,
-    });
+    if (!before) throw new DomainError("not_found");
+
+    // Try the preferred address first; if someone already has it, fall back to the next candidate.
+    const candidates = slugCandidates(before, data.fullName);
+    let slug = before.slug;
+    for (const [i, candidate] of candidates.entries()) {
+      try {
+        await repos.workers.updateProfile(user.id, {
+          slug: candidate,
+          fullName: data.fullName,
+          headline: data.headline,
+          bio: data.bio,
+          yearsExperience: data.yearsExperience,
+          contacts: data.contacts,
+        });
+        slug = candidate;
+        break;
+      } catch (error) {
+        const lastCandidate = i === candidates.length - 1;
+        if (!(error instanceof DomainError && error.code === "conflict") || lastCandidate) throw error;
+      }
+    }
     await repos.workers.setCities(user.id, data.cityIds);
     await repos.workers.setCategories(user.id, data.categoryIds);
-    invalidate(user.id, data.slug);
-    if (before && before.slug !== data.slug) updateTag(`worker-slug:${before.slug}`);
+    invalidate(user.id, slug);
+    if (before.slug !== slug) updateTag(`worker-slug:${before.slug}`);
     return ok();
   } catch (error) {
-    if (error instanceof DomainError && error.code === "conflict") {
-      return { ok: false, error: "conflict", fieldErrors: { slug: "slug_taken" } };
-    }
     return fail(error);
   }
 }

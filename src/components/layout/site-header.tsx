@@ -17,22 +17,23 @@ export function SiteHeader() {
       </a>
       <div className="container-page flex h-16 items-center gap-6">
         <Logo />
-        <nav className="hidden items-center gap-1 text-sm font-medium text-muted-foreground md:flex">
-          <Link href="/workers" className="rounded-lg px-3 py-2 transition-colors hover:bg-muted hover:text-foreground">
+        {/* Full header from xl: the Georgian labels need ~1030px; narrower screens use the menu. */}
+        <nav className="hidden items-center gap-1 text-sm font-medium text-muted-foreground xl:flex">
+          <Link href="/workers" className="rounded-lg px-3 py-2 whitespace-nowrap transition-colors hover:bg-muted hover:text-foreground">
             {t("nav.workers")}
           </Link>
-          <Link href="/#categories" className="rounded-lg px-3 py-2 transition-colors hover:bg-muted hover:text-foreground">
+          <Link href="/#categories" className="rounded-lg px-3 py-2 whitespace-nowrap transition-colors hover:bg-muted hover:text-foreground">
             {t("nav.categories")}
           </Link>
-          <Link href="/#how-it-works" className="rounded-lg px-3 py-2 transition-colors hover:bg-muted hover:text-foreground">
+          <Link href="/#how-it-works" className="rounded-lg px-3 py-2 whitespace-nowrap transition-colors hover:bg-muted hover:text-foreground">
             {t("nav.howItWorks")}
           </Link>
         </nav>
-        <div className="ml-auto hidden items-center gap-3 md:flex">
+        <div className="ml-auto hidden items-center gap-3 xl:flex">
           <LanguageSwitcher />
           <AuthButtons />
         </div>
-        <div className="ml-auto md:hidden">
+        <div className="ml-auto xl:hidden">
           <MobileMenu />
         </div>
       </div>
