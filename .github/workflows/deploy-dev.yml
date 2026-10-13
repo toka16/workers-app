@@ -53,8 +53,9 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      # Pinned: this step runs with the deploy token, so never pull an unreviewed "latest".
-      VERCEL_CLI_VERSION: 60.1.3
+      # Pinned: this step runs with the deploy token, so never pull an unreviewed "latest". Older CLIs
+      # can't read this project's settings ("Could not retrieve Project Settings"); 60.x fails, 63.1.2 works.
+      VERCEL_CLI_VERSION: 63.1.2
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
