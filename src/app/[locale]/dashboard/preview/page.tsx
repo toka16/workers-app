@@ -10,7 +10,7 @@ export default async function PreviewPage() {
   return (
     <div className="-mx-4 overflow-hidden bg-background sm:mx-0 sm:rounded-2xl sm:border sm:border-border">
       {!profile.isPublished && <Alert className="m-4">{t("previewBanner")}</Alert>}
-      <WorkerProfileView worker={profile} categories={categories} />
+      <WorkerProfileView worker={profile} categories={categories} preview />
     </div>
   );
 }

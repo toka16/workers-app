@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { DomainError } from "@/domain/errors";
+import { MAX_IMAGE_BYTES } from "@/domain/models";
 import { completenessPercent, missingForPublish } from "@/domain/profile";
 import { parseSearchParams } from "@/domain/schemas";
 import { createMemoryServerProvider } from "@/infrastructure/memory/provider";
@@ -63,6 +64,18 @@ describe("worker lifecycle (memory provider)", () => {
     const user = store.createUser("b@x.ge", "password1", "Draft");
     expect(await repos.workers.getById(user.id)).toBeNull();
     expect(await repos.workers.getPublishedBySlug(store.profiles.get(user.id)!.slug)).toBeNull();
+  });
+
+  it("rejects image files over the storage limit", async () => {
+    const user = store.createUser("big@x.ge", "password1", "Big");
+    await repos.auth.signIn("big@x.ge", "password1");
+    const options = { contentType: "image/webp" };
+    await expect(repos.storage.upload("portfolio", `${user.id}/ok.webp`, new Blob([new Uint8Array(MAX_IMAGE_BYTES)]), options)).resolves.toBe(
+      `${user.id}/ok.webp`,
+    );
+    await expect(
+      repos.storage.upload("portfolio", `${user.id}/big.webp`, new Blob([new Uint8Array(MAX_IMAGE_BYTES + 1)]), options),
+    ).rejects.toMatchObject({ code: "upload_failed" });
   });
 
   it("prevents editing someone else's profile, services or files", async () => {

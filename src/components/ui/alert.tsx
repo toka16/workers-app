@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const VARIANTS = {
   error: { icon: CircleAlert, className: "bg-destructive-soft text-destructive" },
-  success: { icon: CircleCheck, className: "bg-success-soft text-success" },
+  success: { icon: CircleCheck, className: "bg-success-soft text-success-strong" },
   info: { icon: Info, className: "bg-primary-soft text-primary-soft-foreground" },
 };
 

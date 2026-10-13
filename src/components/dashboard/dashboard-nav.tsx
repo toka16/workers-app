@@ -1,15 +1,14 @@
 "use client";
 
-import { Briefcase, Images, LayoutDashboard, Settings, UserRound } from "lucide-react";
+import { LayoutDashboard, Settings, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { GuardedLink } from "./profile-editor/editor-guard";
 
 const ITEMS = [
   { href: "/dashboard", key: "overview", icon: LayoutDashboard },
   { href: "/dashboard/profile", key: "profile", icon: UserRound },
-  { href: "/dashboard/services", key: "services", icon: Briefcase },
-  { href: "/dashboard/portfolio", key: "portfolio", icon: Images },
   { href: "/dashboard/account", key: "account", icon: Settings },
 ] as const;
 
@@ -20,7 +19,7 @@ export function DashboardNav({ active }: { active?: string }) {
       {ITEMS.map(({ href, key, icon: Icon }) => {
         const isActive = active === href;
         return (
-          <Link
+          <GuardedLink
             key={href}
             href={href}
             aria-current={isActive ? "page" : undefined}
@@ -29,9 +28,9 @@ export function DashboardNav({ active }: { active?: string }) {
               isActive ? "bg-primary text-primary-foreground shadow-soft" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="size-4.5" />
+            <Icon className="size-4" />
             {t(key)}
-          </Link>
+          </GuardedLink>
         );
       })}
     </nav>

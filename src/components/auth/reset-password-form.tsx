@@ -13,7 +13,7 @@ import { Field } from "@/components/ui/field";
 import { resetPasswordSchema } from "@/domain/schemas";
 import { useRouter } from "@/i18n/navigation";
 import { PasswordInput } from "./password-input";
-import { useActionErrors } from "./use-action-form";
+import { safeAction, useActionErrors } from "./use-action-form";
 
 type Values = z.input<typeof resetPasswordSchema>;
 
@@ -25,7 +25,7 @@ export function ResetPasswordForm({ submitLabel, onDoneHref = "/dashboard" }: { 
   const { errors, isSubmitting } = form.formState;
 
   const onSubmit = form.handleSubmit(async (values) => {
-    if (handle(await updatePasswordAction(values.password))) {
+    if (handle(await safeAction(() => updatePasswordAction(values.password)))) {
       toast.success(t("dashboard.account.passwordChangedToast"));
       form.reset();
       router.replace(onDoneHref);

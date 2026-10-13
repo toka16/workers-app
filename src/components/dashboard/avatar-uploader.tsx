@@ -1,18 +1,21 @@
 "use client";
 
 import { Camera, LoaderCircle, Trash } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { setAvatarAction } from "@/actions/dashboard";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { safeAction } from "@/components/auth/use-action-form";
 import { useRouter } from "@/i18n/navigation";
 import { getBrowserRepositories } from "@/infrastructure/container.client";
-import { ACCEPTED_IMAGE_TYPES, MAX_SOURCE_BYTES, processImage } from "@/lib/image";
+import { ACCEPTED_IMAGE_TYPES, formatBytes, ImageTooLargeError, MAX_IMAGE_BYTES, MAX_SOURCE_BYTES, processImage } from "@/lib/image";
+import { ConfirmDialog } from "./confirm-dialog";
 
 export function AvatarUploader({ userId, name, url }: { userId: string; name: string; url: string | null }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -20,7 +23,9 @@ export function AvatarUploader({ userId, name, url }: { userId: string; name: st
 
   async function upload(file: File) {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return toast.error(t("validation.file_type"));
-    if (file.size > MAX_SOURCE_BYTES) return toast.error(t("validation.file_too_large"));
+    if (file.size > MAX_SOURCE_BYTES) {
+      return toast.error(t("dashboard.upload.tooLarge", { name: file.name, max: formatBytes(MAX_SOURCE_BYTES, locale) }));
+    }
     setBusy(true);
     try {
       const image = await processImage(file, 512, { square: true });
@@ -34,11 +39,25 @@ export function AvatarUploader({ userId, name, url }: { userId: string; name: st
       );
       const result = await setAvatarAction(path);
       if (!result.ok) throw new Error(result.error);
-      toast.success(t("dashboard.profile.savedToast"));
+      if (file.size > MAX_IMAGE_BYTES) {
+        toast.warning(
+          t("dashboard.upload.reducedOne", {
+            from: formatBytes(file.size, locale),
+            to: formatBytes(image.blob.size, locale),
+            max: formatBytes(MAX_IMAGE_BYTES, locale),
+          }),
+        );
+      } else {
+        toast.success(t("dashboard.profile.savedToast"));
+      }
       router.refresh();
-    } catch {
+    } catch (error) {
       setPreview(null);
-      toast.error(t("errors.upload_failed"));
+      toast.error(
+        error instanceof ImageTooLargeError
+          ? t("dashboard.upload.notReducible", { name: file.name, max: formatBytes(MAX_IMAGE_BYTES, locale) })
+          : t("errors.upload_failed"),
+      );
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -47,10 +66,11 @@ export function AvatarUploader({ userId, name, url }: { userId: string; name: st
 
   async function remove() {
     setBusy(true);
-    const result = await setAvatarAction(null);
+    const result = await safeAction(() => setAvatarAction(null));
     setBusy(false);
     if (!result.ok) return toast.error(t(`errors.${result.error}`));
     setPreview(null);
+    toast.success(t("dashboard.profile.avatarRemovedToast"));
     router.refresh();
   }
 
@@ -71,12 +91,20 @@ export function AvatarUploader({ userId, name, url }: { userId: string; name: st
             <Camera /> {t("dashboard.profile.changeAvatar")}
           </Button>
           {shown && (
-            <Button type="button" variant="ghost" disabled={busy} onClick={remove} className="text-destructive">
-              <Trash /> {t("dashboard.profile.removeAvatar")}
-            </Button>
+            <ConfirmDialog
+              title={t("dashboard.profile.removeAvatarConfirm")}
+              confirmLabel={t("dashboard.profile.removeAvatar")}
+              onConfirm={remove}
+              trigger={
+                <Button type="button" variant="ghost" disabled={busy} className="text-destructive">
+                  <Trash /> {t("dashboard.profile.removeAvatar")}
+                </Button>
+              }
+            />
           )}
         </div>
         <p className="text-sm text-muted-foreground">{t("dashboard.profile.avatarHint")}</p>
+        <p className="text-xs text-muted-foreground">{t("dashboard.upload.limitHint", { max: formatBytes(MAX_IMAGE_BYTES, locale) })}</p>
       </div>
       <input
         ref={input}

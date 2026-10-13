@@ -1,14 +1,8 @@
-import { getTranslations } from "next-intl/server";
-import { PageHeader } from "@/components/dashboard/page-header";
-import { PortfolioManager } from "@/components/dashboard/portfolio-manager";
-import { getOwnProfile } from "@/lib/data/dashboard";
+import { getLocale } from "next-intl/server";
+import { stepHref } from "@/domain/profile-steps";
+import { redirect } from "@/i18n/navigation";
 
+/** Moved into the profile editor; kept so old links and bookmarks still work. */
 export default async function PortfolioPage() {
-  const [{ profile }, t] = await Promise.all([getOwnProfile(), getTranslations("dashboard.portfolio")]);
-  return (
-    <>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
-      <PortfolioManager userId={profile.id} images={profile.portfolio} />
-    </>
-  );
+  redirect({ href: stepHref("portfolio"), locale: await getLocale() });
 }

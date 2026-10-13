@@ -13,7 +13,7 @@ test.describe("visitor journey (no account)", () => {
 
     // Filters live in the URL, so a reload keeps them.
     await page.reload();
-    await expect(page.getByRole("button", { name: "Tbilisi", exact: true })).toBeVisible(); // active-filter chip
+    await expect(page.getByRole("button", { name: "Tbilisi Remove filter", exact: true })).toBeVisible(); // active-filter chip
 
     // Open the first result.
     await page.locator('a[href^="/en/workers/"]').first().click();

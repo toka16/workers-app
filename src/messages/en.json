@@ -32,7 +32,8 @@
     "negotiable": "Price on request",
     "moreCount": "+{count}",
     "optional": "optional",
-    "free": "Free"
+    "free": "Free",
+    "undo": "Undo"
   },
   "priceUnit": {
     "fixed": "fixed price",
@@ -124,7 +125,9 @@
     "next": "Next",
     "page": "Page {page} of {total}",
     "allServices": "All services",
-    "allCities": "All cities"
+    "allCities": "All cities",
+    "removeFilter": "Remove filter",
+    "pagination": "Pagination"
   },
   "profile": {
     "about": "About",
@@ -150,7 +153,9 @@
     "copied": "Link copied",
     "notFoundTitle": "Profile not found",
     "notFoundText": "This profile doesn't exist or isn't public anymore.",
-    "previewBanner": "This is a preview of your draft — visitors can't see it until you publish."
+    "previewBanner": "This is a preview of your draft — visitors can't see it until you publish.",
+    "backToEditor": "Back to editing",
+    "copyFailed": "Couldn't copy the link. Please select and copy it manually."
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -185,16 +190,22 @@
     "asideBenefit2": "Show off your best work with photos",
     "asideBenefit3": "Clients call or message you directly",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "resendConfirmation": "Resend confirmation e-mail",
+    "confirmationResent": "We sent a new confirmation link to {email}.",
+    "confirmationResentShort": "E-mail sent",
+    "noEmailYet": "Didn't get it? Check your spam folder or send it again.",
+    "resetExpiredTitle": "This link has expired",
+    "resetExpiredText": "For your security, password reset links only work for an hour. Request a new one to choose your password.",
+    "sendNewLink": "Send a new link"
   },
   "dashboard": {
     "nav": {
       "overview": "Overview",
-      "profile": "Profile",
-      "services": "Services",
-      "portfolio": "Portfolio",
+      "profile": "Edit profile",
       "account": "Account",
-      "viewPublic": "View public page"
+      "viewPublic": "View public page",
+      "preview": "Preview"
     },
     "greeting": "Hi, {name}!",
     "greetingFallback": "Welcome!",
@@ -210,20 +221,12 @@
       "service": "List a service with a price",
       "portfolio": "Upload photos of your work"
     },
-    "statusPublished": "Published",
-    "statusDraft": "Draft",
-    "publishedText": "Your profile is visible in search.",
-    "draftText": "Your profile is hidden. Publish it when you're ready.",
     "publish": "Publish profile",
     "unpublish": "Hide profile",
-    "publishMissing": "To publish, complete: {items}",
     "publishedToast": "Your profile is live!",
     "unpublishedToast": "Your profile is hidden now.",
     "quickLinks": "Quick actions",
     "profile": {
-      "title": "Profile",
-      "subtitle": "This is what clients see on your page.",
-      "basics": "Basics",
       "avatar": "Profile photo",
       "avatarHint": "A friendly, clear photo of your face builds trust.",
       "changeAvatar": "Change photo",
@@ -234,14 +237,9 @@
       "bio": "About you",
       "bioPlaceholder": "Describe your experience, the jobs you take on and why clients like working with you.",
       "yearsExperience": "Years of experience",
-      "slug": "Profile address",
-      "slugHint": "Created automatically from your name. Share it with clients.",
-      "workArea": "Services & area",
       "categories": "Service categories",
       "categoriesHint": "Choose up to 8.",
       "cities": "Cities you work in",
-      "contacts": "Contacts",
-      "contactsHint": "Shown publicly on your page. Add at least one.",
       "phone": "Phone",
       "whatsapp": "WhatsApp number",
       "viber": "Viber number",
@@ -250,11 +248,11 @@
       "facebook": "Facebook page URL",
       "website": "Website",
       "savedToast": "Profile saved",
-      "copyLink": "Copy link"
+      "copyLink": "Copy link",
+      "removeAvatarConfirm": "Remove your profile photo?",
+      "avatarRemovedToast": "Profile photo removed"
     },
     "services": {
-      "title": "Services & prices",
-      "subtitle": "Clear prices get more calls. Use “negotiable” when it depends on the job.",
       "add": "Add service",
       "edit": "Edit service",
       "empty": "No services yet. Add your first one so clients know what to expect.",
@@ -270,13 +268,12 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "savedToast": "Service saved",
-      "deletedToast": "Service deleted"
+      "deletedToast": "Service deleted",
+      "discardText": "Your changes to this service haven't been saved yet."
     },
     "portfolio": {
-      "title": "Portfolio",
-      "subtitle": "Photos of real work are the most convincing thing on your page.",
       "upload": "Upload photos",
-      "dropHint": "Drag photos here or click to choose. JPG, PNG or WebP.",
+      "dropHint": "Drag photos here or click to choose.",
       "uploading": "Uploading {done} of {total}…",
       "empty": "No photos yet.",
       "caption": "Caption",
@@ -293,14 +290,109 @@
       "subtitle": "Login details and account removal.",
       "email": "Login e-mail",
       "changePassword": "Change password",
+      "currentPassword": "Current password",
       "passwordChangedToast": "Password updated",
       "dangerZone": "Danger zone",
       "deleteTitle": "Delete account",
       "deleteText": "Your profile, services and photos will be removed permanently. This cannot be undone.",
       "deleteButton": "Delete my account",
       "deleteConfirmTitle": "Delete your account?",
-      "deleteConfirmText": "Type DELETE to confirm.",
-      "deleteConfirmWord": "DELETE"
+      "deleteConfirmText": "Type {word} to confirm.",
+      "deleteConfirmWord": "DELETE",
+      "deletedToast": "Your account has been deleted."
+    },
+    "editor": {
+      "title": "Edit profile",
+      "subtitle": "Fill in your profile step by step. You can skip any step and come back later.",
+      "stepOf": "Step {current} of {total}",
+      "stepsLabel": "Profile steps",
+      "required": "Required",
+      "optional": "Optional",
+      "done": "Done",
+      "steps": {
+        "basics": {
+          "title": "About you",
+          "short": "About you",
+          "description": "Your name, photo and a short headline are the first things clients see."
+        },
+        "area": {
+          "title": "Work area",
+          "short": "Work area",
+          "description": "Choose what you do and where you work. This is how clients find you in search."
+        },
+        "contacts": {
+          "title": "Contacts",
+          "short": "Contacts",
+          "description": "How clients reach you. Add at least one; they're shown on your public page."
+        },
+        "services": {
+          "title": "Services & prices",
+          "short": "Services",
+          "description": "Optional, but clear prices get more calls. Use “negotiable” when it depends on the job."
+        },
+        "portfolio": {
+          "title": "Photos of your work",
+          "short": "Photos",
+          "description": "Optional, but photos of real jobs are the most convincing part of your page."
+        },
+        "review": {
+          "title": "Review & publish",
+          "short": "Publish",
+          "description": "Check your profile, preview your page and publish it when you're ready."
+        }
+      },
+      "back": "Back",
+      "skip": "Skip for now",
+      "skipShort": "Skip",
+      "continue": "Continue",
+      "saveContinue": "Save & continue",
+      "unsaved": "Unsaved changes",
+      "discardTitle": "Discard unsaved changes?",
+      "discardText": "Your changes on this step haven't been saved yet.",
+      "discard": "Discard changes",
+      "keepEditing": "Keep editing",
+      "savedLive": "Saved. Changes are live on your page.",
+      "savedHidden": "Saved. Your profile is still hidden.",
+      "fixOtherStep": "Something on the “{step}” step needs fixing before you can save.",
+      "goToStep": "Go to {step}",
+      "photoSavesInstantly": "Your photo is saved as soon as it's uploaded.",
+      "savesInstantly": "Changes on this step are saved right away.",
+      "status": {
+        "live": "Live",
+        "hidden": "Hidden",
+        "liveTitle": "Your profile is live",
+        "liveText": "Clients can find you in search. Saved changes appear on your public page right away.",
+        "readyTitle": "Ready to go live",
+        "readyText": "Everything required is filled in. Your profile stays hidden until you publish it.",
+        "hiddenTitle": "Your profile is hidden",
+        "hiddenText": "Clients can't see it yet. To publish, finish:",
+        "statusLabel": "Profile status: {status}"
+      },
+      "review": {
+        "notFilled": "Not filled in yet",
+        "areaSummary": "{categories, plural, =0 {No categories} one {# category} other {# categories}} · {cities, plural, =0 {no cities} one {# city} other {# cities}}",
+        "services": "{count, plural, =0 {No services yet} one {# service} other {# services}}",
+        "photos": "{count, plural, =0 {No photos yet} one {# photo} other {# photos}}",
+        "preview": "Preview your page",
+        "previewHint": "See your page exactly as clients will.",
+        "missingTitle": "Before you can publish",
+        "missingText": "Fill in the required steps marked below. Everything else can wait.",
+        "readyTitle": "Looks good! Publish when you're ready.",
+        "readyText": "Once published, clients can find you in search. You can hide your profile again at any time.",
+        "liveTitle": "Your page is live",
+        "liveText": "Share this link with clients. Hiding your profile removes it from search until you publish again.",
+        "profileAddress": "Your page address"
+      },
+      "continueSetup": "Continue setup",
+      "nextStep": "Next: {step}",
+      "editProfile": "Edit profile"
+    },
+    "upload": {
+      "limitHint": "JPG, PNG or WebP. Photos over {max} are reduced automatically.",
+      "reducedOne": "Photo saved. It was {from}, over the {max} limit, so we reduced it to {to} first.",
+      "reducedMany": "{count, plural, one {# photo was} other {# photos were}} over the {max} limit, so we reduced {count, plural, one {it} other {them}} automatically before uploading.",
+      "tooLarge": "“{name}” is over {max}, too large to upload. Please choose a smaller photo.",
+      "notReducible": "We couldn't reduce “{name}” below {max}. Please try another photo."
     }
   },
   "validation": {
@@ -311,13 +403,16 @@
     "passwords_mismatch": "Passwords don't match",
     "invalid_phone": "Enter a valid phone number, e.g. +995 555 12 34 56",
     "invalid_url": "Enter a full link starting with https://",
+    "invalid_facebook": "Enter your Facebook page link, e.g. https://facebook.com/yourpage",
+    "wrong_password": "Current password is incorrect",
     "invalid_telegram": "Use your Telegram username, e.g. @name",
     "invalid_number": "Enter a valid number",
     "too_many_categories": "Choose at most 8 categories",
     "price_required": "Enter a price or choose “negotiable”",
     "price_range_invalid": "Must be greater than the starting price",
-    "file_too_large": "Image is too large",
-    "file_type": "Only JPG, PNG or WebP images"
+    "file_type": "Only JPG, PNG or WebP images",
+    "required_while_live": "Your profile is live, so keep at least one selected",
+    "contact_required_while_live": "Your profile is live, so keep at least one contact (website doesn't count)"
   },
   "errors": {
     "unknown": "Something went wrong. Please try again.",
@@ -332,12 +427,15 @@
     "weak_password": "This password is too weak.",
     "rate_limited": "Too many attempts. Please wait a moment.",
     "upload_failed": "Upload failed. Please try another image.",
+    "limit_reached": "You've reached the maximum number of items.",
+    "captcha_failed": "We couldn't verify you're human. Please complete the check and try again.",
     "pageTitle": "Something went wrong",
     "pageText": "An unexpected error occurred. Try again in a moment.",
     "retry": "Try again",
     "notFoundTitle": "Page not found",
     "notFoundText": "The page you're looking for doesn't exist or has moved.",
-    "goHome": "Go home"
+    "goHome": "Go home",
+    "backToDashboard": "Back to my profile"
   },
   "footer": {
     "about": "Xelosani connects people with trusted home-service pros across Georgia. Free for everyone.",

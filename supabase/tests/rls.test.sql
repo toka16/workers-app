@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(24);
 
 -- Fixtures: two workers (A published-ready, B draft) created through the real auth trigger.
 insert into auth.users (id, email, aud, role, instance_id)
@@ -50,6 +50,43 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.cities (slug, name_ka, name_en) values ('x', 'x', 'x') $$,
   '42501', null, 'reference data is read only');
+
+-- Direct API writes get the same validation as the app (hardening migration).
+select throws_ok(
+  $$ update public.worker_profiles set avatar_path = 'https://evil.example/pixel.png' where id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
+  '23514', null, 'avatar cannot point at an arbitrary host');
+select throws_ok(
+  $$ update public.worker_profiles set avatar_path = 'bbbbbbbb-0000-0000-0000-000000000002/avatar.webp' where id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
+  '23514', null, 'avatar cannot point into another worker''s folder');
+select lives_ok(
+  $$ update public.worker_profiles set avatar_path = 'aaaaaaaa-0000-0000-0000-000000000001/avatar-1.webp' where id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
+  'avatar in own folder is accepted');
+select throws_ok(
+  $$ update public.worker_profiles set website = 'javascript:alert(1)//x.y' where id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
+  '23514', null, 'website must be an http(s) link');
+select throws_ok(
+  $$ insert into public.portfolio_images (worker_id, path, thumb_path) values ('aaaaaaaa-0000-0000-0000-000000000001', 'https://evil.example/a.jpg', 'https://evil.example/b.jpg') $$,
+  '23514', null, 'portfolio images must live in own storage folder');
+
+insert into public.worker_services (worker_id, title, price_from)
+  select 'aaaaaaaa-0000-0000-0000-000000000001', 'Service ' || n, 10 from generate_series(2, 30) n;
+select throws_ok(
+  $$ insert into public.worker_services (worker_id, title, price_from) values ('aaaaaaaa-0000-0000-0000-000000000001', 'One too many', 10) $$,
+  '23514', null, 'services are capped per worker');
+delete from public.worker_services where worker_id = 'aaaaaaaa-0000-0000-0000-000000000001' and title like 'Service %';
+
+-- Removing the last category through the API puts the profile back into draft.
+insert into public.worker_categories (worker_id, category_id) select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.categories where slug = 'hvac';
+delete from public.worker_categories where worker_id = 'aaaaaaaa-0000-0000-0000-000000000001' and category_id = (select id from public.categories where slug = 'hvac');
+select ok(
+  (select is_published from public.worker_profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+  'removing one of several categories keeps the profile live');
+delete from public.worker_categories where worker_id = 'aaaaaaaa-0000-0000-0000-000000000001';
+select ok(
+  not (select is_published from public.worker_profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+  'removing the last category unpublishes');
+insert into public.worker_categories (worker_id, category_id) select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.categories where slug = 'plumbing';
+update public.worker_profiles set is_published = true where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 
 -- ---------------------------------------------------------------- worker B
 set local request.jwt.claims = '{"sub": "bbbbbbbb-0000-0000-0000-000000000002", "role": "authenticated"}';

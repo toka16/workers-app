@@ -1,13 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getRepositories } from "@/infrastructure/container.server";
-
-/** Only allow same-site relative redirects (prevents open redirects via `next`). */
-function safeNext(value: string | null): string {
-  return value && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : "/dashboard";
-}
+import { safeNext } from "@/lib/safe-redirect";
+import { siteUrl } from "@/lib/site";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  // Same origin the e-mail link was built from. The request's own origin can be an internal address
+  // (e.g. 0.0.0.0 in a container), where the session cookie just set would not be sent.
+  const origin = siteUrl();
   const code = searchParams.get("code");
   const next = safeNext(searchParams.get("next"));
 

@@ -10,6 +10,7 @@ import type {
   WorkerProfile,
   WorkerSummary,
 } from "@/domain/models";
+import { isDemoImageUrl, MAX_IMAGE_BYTES } from "@/domain/models";
 import type {
   AuthRepository,
   FileStorage,
@@ -55,6 +56,7 @@ export class MemoryAuthRepository implements AuthRepository {
     if (!user) throw new DomainError("invalid_credentials");
     if (!user.confirmed) throw new DomainError("email_not_confirmed");
     this.store.currentUserId = user.id;
+    this.store.emailLinkSession = false;
     return { id: user.id, email: user.email };
   }
 
@@ -62,7 +64,19 @@ export class MemoryAuthRepository implements AuthRepository {
     this.store.currentUserId = null;
   }
 
+  async resendConfirmation(): Promise<void> {}
+
   async requestPasswordReset(): Promise<void> {}
+
+  async isRecentEmailLinkSession(): Promise<boolean> {
+    return this.store.currentUserId !== null && this.store.emailLinkSession;
+  }
+
+  async verifyPassword(password: string): Promise<boolean> {
+    const user = this.store.currentUserId ? this.store.users.get(this.store.currentUserId) : undefined;
+    if (!user) throw new DomainError("unauthorized");
+    return user.password === password;
+  }
 
   async updatePassword(password: string): Promise<void> {
     const user = this.store.currentUserId ? this.store.users.get(this.store.currentUserId) : undefined;
@@ -76,6 +90,7 @@ export class MemoryAuthRepository implements AuthRepository {
     if (!user) throw new DomainError("unauthorized");
     user.confirmed = true;
     this.store.currentUserId = user.id;
+    this.store.emailLinkSession = true;
   }
 
   async deleteAccount(): Promise<void> {
@@ -374,6 +389,8 @@ export class MemoryFileStorage implements FileStorage {
     void options;
     const owner = path.split("/")[0];
     if (!this.store.currentUserId || owner !== this.store.currentUserId) throw new DomainError("upload_failed");
+    // Mirrors the bucket's file_size_limit.
+    if (file.size > MAX_IMAGE_BYTES) throw new DomainError("upload_failed", "file too large");
     this.store.files.set(`${bucket}/${path}`, file);
     return path;
   }
@@ -382,7 +399,13 @@ export class MemoryFileStorage implements FileStorage {
     for (const path of paths) this.store.files.delete(`${bucket}/${path}`);
   }
 
+  async list(bucket: StorageBucket, folder: string): Promise<string[]> {
+    const prefix = `${bucket}/${folder}/`;
+    return [...this.store.files.keys()].filter((k) => k.startsWith(prefix)).map((k) => k.slice(bucket.length + 1));
+  }
+
   getPublicUrl(bucket: StorageBucket, path: string): string {
-    return /^https?:\/\//.test(path) ? path : `memory://${bucket}/${path}`;
+    if (/^https?:\/\//.test(path)) return isDemoImageUrl(path) ? path : "";
+    return `memory://${bucket}/${path}`;
   }
 }

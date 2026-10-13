@@ -62,7 +62,7 @@ export function HeroCollage({ workers }: { workers: CollageWorker[] }) {
               </div>
             )}
             {i === 2 && (
-              <div className="flex items-center gap-2 bg-success-soft px-3.5 py-2.5 text-xs font-semibold text-success">
+              <div className="flex items-center gap-2 bg-success-soft px-3.5 py-2.5 text-xs font-semibold text-success-strong">
                 <Phone className="size-3.5" /> {t("call")}
               </div>
             )}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowRight, BadgeCheck, Camera, CheckCircle2, Coins, MessageCircle, PhoneCall, Search, Users } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { HeroCollage, type CollageWorker } from "@/components/landing/hero-collage";
@@ -11,6 +12,11 @@ import { localized } from "@/i18n/localized";
 import { Link } from "@/i18n/navigation";
 import { getCategories, getCities, getFeaturedWorkers, getStats } from "@/lib/data/public";
 import { formatMoney } from "@/lib/format";
+
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: { canonical: locale === "ka" ? "/" : "/en", languages: { ka: "/", en: "/en" } } };
+}
 
 export default async function LandingPage() {
   const [t, locale, categories, cities, featured, stats] = await Promise.all([
@@ -52,7 +58,7 @@ export default async function LandingPage() {
             </Badge>
             <h1 className="animate-fade-up text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl [animation-delay:60ms]">
               {t("landing.titleStart")}{" "}
-              <span className="bg-gradient-to-r from-accent via-amber-300 to-accent bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-accent via-accent-light to-accent bg-clip-text text-transparent">
                 {t("landing.titleHighlight")}
               </span>
             </h1>
@@ -62,7 +68,7 @@ export default async function LandingPage() {
             <div className="animate-fade-up [animation-delay:180ms]">
               <HeroSearch categories={categories} cities={cities} />
             </div>
-            <div className="flex animate-fade-up flex-wrap items-center gap-2 text-sm text-white/75 [animation-delay:240ms]">
+            <div className="flex animate-fade-up flex-wrap items-center gap-2 text-sm text-white/85 [animation-delay:240ms]">
               <span>{t("landing.popular")}</span>
               {popular.map((c) => (
                 <Link
@@ -146,10 +152,10 @@ export default async function LandingPage() {
             ].map(({ icon: Icon, title, text }, i) => (
               <Reveal key={title} delay={i * 0.1}>
                 <li className="relative h-full rounded-2xl bg-background p-6 ring-1 ring-border">
-                  <span className="absolute top-5 right-6 font-display text-5xl font-extrabold text-primary/10">
+                  <span aria-hidden className="absolute top-5 right-6 font-display text-5xl font-extrabold text-primary/10">
                     0{i + 1}
                   </span>
-                  <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-primary to-hero-from text-white shadow-soft">
+                  <span className="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-primary to-hero-from text-primary-foreground shadow-soft">
                     <Icon className="size-6" />
                   </span>
                   <h3 className="mt-5 text-xl font-bold">{title}</h3>
@@ -189,7 +195,7 @@ export default async function LandingPage() {
       {/* ------------------------------------------------------------------ Worker CTA */}
       <section className="container-page pb-20 sm:pb-24">
         <Reveal>
-          <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-hero-from to-hero-to px-6 py-12 text-white shadow-lift sm:px-12 sm:py-16">
+          <div className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-hero-from to-hero-to px-6 py-12 text-white shadow-lift sm:px-12 sm:py-16">
             <div aria-hidden className="absolute -top-24 -right-16 -z-10 size-80 rounded-full bg-accent/35 blur-[90px]" />
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
               <div className="grid gap-5">

@@ -13,8 +13,10 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signUpSchema } from "@/domain/schemas";
 import { useRouter } from "@/i18n/navigation";
+import { useCaptcha } from "./captcha";
 import { PasswordInput } from "./password-input";
-import { useActionErrors } from "./use-action-form";
+import { ResendConfirmationButton } from "./resend-confirmation-button";
+import { safeAction, useActionErrors } from "./use-action-form";
 
 type Values = z.input<typeof signUpSchema>;
 
@@ -29,9 +31,11 @@ export function RegisterForm() {
   });
   const { formError, handle } = useActionErrors(form.setError);
   const { errors, isSubmitting } = form.formState;
+  const captcha = useCaptcha();
 
   const onSubmit = form.handleSubmit(async (values) => {
-    const result = await signUpAction(values, locale);
+    const result = await safeAction(() => signUpAction(values, locale, captcha.token));
+    captcha.reset();
     if (!handle(result)) return;
     if (result.data.needsConfirmation) {
       setSentTo(values.email);
@@ -49,6 +53,8 @@ export function RegisterForm() {
         </span>
         <h2 className="text-xl font-bold">{t("checkEmailTitle")}</h2>
         <p className="text-muted-foreground">{t("checkEmailText", { email: sentTo })}</p>
+        <p className="text-sm text-muted-foreground">{t("noEmailYet")}</p>
+        <ResendConfirmationButton email={sentTo} />
       </div>
     );
   }
@@ -65,7 +71,8 @@ export function RegisterForm() {
       <Field id="password" label={t("password")} error={errors.password?.message} hint={t("passwordHint")}>
         <PasswordInput id="password" autoComplete="new-password" aria-invalid={!!errors.password} {...form.register("password")} />
       </Field>
-      <Button type="submit" variant="accent" size="lg" disabled={isSubmitting}>
+      {captcha.widget}
+      <Button type="submit" variant="accent" size="lg" disabled={isSubmitting || !captcha.ready}>
         {isSubmitting && <LoaderCircle className="animate-spin" />}
         {t("createAccount")}
       </Button>

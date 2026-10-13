@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { contactLinks } from "@/components/workers/contact-links";
 import { slugCandidates } from "@/domain/profile";
 import { formatPhoneForDisplay } from "@/lib/format";
+import { formatBytes } from "@/lib/image";
 import { slugify } from "@/lib/slugify";
 
 describe("slugify", () => {
@@ -61,5 +62,14 @@ describe("slugCandidates", () => {
 
   it("keeps the placeholder when the name gives nothing usable", () => {
     expect(slugCandidates({ id, slug: "worker-e847029d8e" }, "!!")).toEqual(["worker-e847029d8e"]);
+  });
+});
+
+describe("formatBytes", () => {
+  it("shows MB above a megabyte and whole KB below", () => {
+    expect(formatBytes(2 * 1024 * 1024, "en")).toBe("2 MB");
+    expect(formatBytes(3.46 * 1024 * 1024, "en")).toBe("3.5 MB");
+    expect(formatBytes(480 * 1024 + 300, "ka")).toBe("480 KB");
+    expect(formatBytes(10, "en")).toBe("1 KB");
   });
 });

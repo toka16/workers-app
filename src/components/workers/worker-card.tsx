@@ -2,6 +2,7 @@ import { Briefcase, Images, MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Category, City, WorkerSummary } from "@/domain/models";
 import { Link } from "@/i18n/navigation";
 import { localized } from "@/i18n/localized";
@@ -53,7 +54,7 @@ export function WorkerCard({ worker, categories, cities, className, priority }: 
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
         {worker.photoCount > 0 && (
-          <Badge variant="glass" className="absolute top-3 right-3 border-none bg-black/45">
+          <Badge variant="overlay" className="absolute top-3 right-3">
             <Images /> {worker.photoCount}
           </Badge>
         )}
@@ -107,14 +108,14 @@ export function WorkerCard({ worker, categories, cities, className, priority }: 
 export function WorkerCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="aspect-[16/10] animate-pulse bg-muted" />
+      <Skeleton className="aspect-[16/10] rounded-none" />
       <div className="grid gap-3 p-4">
-        <div className="-mt-12 size-16 animate-pulse rounded-full border-4 border-surface bg-muted" />
-        <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-full animate-pulse rounded bg-muted" />
+        <Skeleton className="-mt-12 size-16 rounded-full border-4 border-surface" />
+        <Skeleton className="h-5 w-2/3" />
+        <Skeleton className="h-4 w-full" />
         <div className="flex gap-2">
-          <div className="h-6 w-24 animate-pulse rounded-full bg-muted" />
-          <div className="h-6 w-20 animate-pulse rounded-full bg-muted" />
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
       </div>
     </div>

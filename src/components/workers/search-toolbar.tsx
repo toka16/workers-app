@@ -9,6 +9,7 @@ import { Input, NativeSelect } from "@/components/ui/input";
 import { SORT_OPTIONS, type Category, type City } from "@/domain/models";
 import { countActiveFilters } from "@/domain/schemas";
 import { localized } from "@/i18n/localized";
+import { formatMoney } from "@/lib/format";
 import { FilterPanel } from "./filter-panel";
 import { useSearch } from "./search-shell";
 
@@ -19,14 +20,24 @@ export function SearchToolbar({ categories, cities, total }: { categories: Categ
   const [open, setOpen] = useState(false);
   const active = countActiveFilters(filters);
 
+  // Follow the URL when the query changes elsewhere (chips, reset, Back), but not when the URL merely
+  // catches up with what we sent: the user may have kept typing since, and that text must survive.
   const [syncedQ, setSyncedQ] = useState(filters.q);
+  const [sentQ, setSentQ] = useState(filters.q);
   if (syncedQ !== filters.q) {
     setSyncedQ(filters.q);
-    setQ(filters.q);
+    if (filters.q !== sentQ) {
+      setSentQ(filters.q);
+      setQ(filters.q);
+    }
   }
   useEffect(() => {
-    if (q.trim() === filters.q) return;
-    const timer = setTimeout(() => update({ q: q.trim() }), 400);
+    const value = q.trim();
+    if (value === sentQ) return;
+    const timer = setTimeout(() => {
+      setSentQ(value);
+      update({ q: value }, { replace: true });
+    }, 400);
     return () => clearTimeout(timer);
   }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -51,7 +62,7 @@ export function SearchToolbar({ categories, cities, total }: { categories: Categ
               <SlidersHorizontal className="size-5" />
               <span className="hidden sm:inline">{t("filters")}</span>
               {active > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">
+                <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
                   {active}
                 </span>
               )}
@@ -115,7 +126,7 @@ function ActiveFilterChips({ categories, cities }: { categories: Category[]; cit
       remove: () => update({ cities: filters.cities.filter((s) => s !== slug) }),
     })),
     ...(filters.priceMax != null
-      ? [{ key: "price", label: `≤ ${filters.priceMax} ₾`, remove: () => update({ priceMax: null }) }]
+      ? [{ key: "price", label: `≤ ${formatMoney(filters.priceMax, "GEL", locale)}`, remove: () => update({ priceMax: null }) }]
       : []),
     ...(filters.minExperience != null
       ? [{ key: "exp", label: t("experienceAtLeast", { years: filters.minExperience }), remove: () => update({ minExperience: null }) }]
@@ -134,7 +145,8 @@ function ActiveFilterChips({ categories, cities }: { categories: Category[]; cit
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-soft py-1.5 pr-2 pl-3 text-sm font-medium text-primary-soft-foreground transition-colors hover:bg-primary-soft/70"
         >
           {chip.label}
-          <X className="size-3.5" />
+          <X className="size-3.5" aria-hidden />
+          <span className="sr-only">{t("removeFilter")}</span>
         </button>
       ))}
     </div>

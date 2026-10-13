@@ -1,11 +1,12 @@
 "use client";
 
-import { RotateCcw, TriangleAlert } from "lucide-react";
+import { House, RotateCcw, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
-export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   const t = useTranslations("errors");
   useEffect(() => console.error(error), [error]);
   return (
@@ -15,9 +16,17 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
       </span>
       <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
       <p className="max-w-md text-muted-foreground">{t("pageText")}</p>
-      <Button onClick={reset}>
-        <RotateCcw /> {t("retry")}
-      </Button>
+      {/* Retrying won't help with a persistent error, so there's always a way out too. */}
+      <div className="flex flex-wrap justify-center gap-3">
+        <Button onClick={retry}>
+          <RotateCcw /> {t("retry")}
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/">
+            <House /> {t("goHome")}
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

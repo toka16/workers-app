@@ -1,6 +1,6 @@
 import { SearchX } from "lucide-react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,15 +10,18 @@ import { PendingArea, SearchShell } from "@/components/workers/search-shell";
 import { SearchToolbar } from "@/components/workers/search-toolbar";
 import { WorkerCard, WorkerCardSkeleton } from "@/components/workers/worker-card";
 import { ResetFiltersButton } from "@/components/workers/reset-filters-button";
-import { parseSearchParams } from "@/domain/schemas";
+import { filtersToSearchParams, parseSearchParams } from "@/domain/schemas";
+import { redirect } from "@/i18n/navigation";
 import { getCategories, getCities, searchWorkers } from "@/lib/data/public";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/[locale]/workers">): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations("meta");
   return {
     title: t("workersTitle"),
     description: t("workersDescription"),
-    alternates: { languages: { ka: "/workers", en: "/en/workers" } },
+    // Every filter combination is the same page for search engines: point them at the unfiltered list.
+    alternates: { canonical: locale === "ka" ? "/workers" : "/en/workers", languages: { ka: "/workers", en: "/en/workers" } },
   };
 }
 
@@ -46,6 +49,13 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/[loca
     getCities(),
     searchWorkers(filters),
   ]);
+
+  // A page past the end (stale link, results shrank) would show "no results" under a non-zero count.
+  const lastPage = Math.max(1, Math.ceil(results.total / filters.pageSize));
+  if (filters.page > lastPage) {
+    const query = filtersToSearchParams({ ...filters, page: lastPage }).toString();
+    redirect({ href: query ? `/workers?${query}` : "/workers", locale: await getLocale() });
+  }
 
   return (
     <SearchShell filters={filters}>

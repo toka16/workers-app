@@ -11,8 +11,11 @@ const badgeVariants = cva(
         accent: "bg-accent-soft text-accent-foreground",
         muted: "bg-muted text-muted-foreground",
         outline: "border border-border bg-surface text-foreground",
-        success: "bg-success-soft text-success",
+        success: "bg-success-soft text-success-strong",
+        warning: "bg-warning-soft text-warning-strong",
         glass: "border border-white/20 bg-white/10 text-white backdrop-blur",
+        /** On top of photos: dark enough for small white text on any image (>= 5.7:1 over white). */
+        overlay: "bg-black/60 text-white backdrop-blur",
       },
       size: {
         sm: "px-2 py-0.5 text-xs",

@@ -13,8 +13,13 @@ export function ShareButton({ title }: { title: string }) {
       await navigator.share({ title, url }).catch(() => undefined);
       return;
     }
-    await navigator.clipboard.writeText(url);
-    toast.success(t("copied"));
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("copied"));
+    } catch {
+      // Clipboard access can be denied (permissions, insecure context): show the link to copy by hand.
+      toast.error(t("copyFailed"), { description: url });
+    }
   }
   return (
     <Button variant="outline" size="sm" onClick={share}>

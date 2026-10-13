@@ -10,21 +10,24 @@ const optionalText = (max: number) =>
     .transform((v) => (v === "" ? null : v))
     .nullable();
 
+// Normalized to "+995555123456"; the database checks the same shape.
 const phone = z
   .string()
   .trim()
   .max(32, "too_long")
-  .refine((v) => v === "" || /^\+?[0-9\s()-]{6,}$/.test(v), "invalid_phone")
-  .transform((v) => (v === "" ? null : v.replace(/[\s()-]/g, "")))
-  .nullable();
-
-const url = z
-  .string()
-  .trim()
-  .max(255, "too_long")
-  .refine((v) => v === "" || /^https?:\/\/\S+\.\S+/.test(v), "invalid_url")
+  .transform((v) => v.replace(/[\s()-]/g, ""))
+  .refine((v) => v === "" || /^\+?[0-9]{6,20}$/.test(v), "invalid_phone")
   .transform((v) => (v === "" ? null : v))
   .nullable();
+
+const url = (pattern = /^https?:\/\/\S+\.\S+$/, message = "invalid_url") =>
+  z
+    .string()
+    .trim()
+    .max(255, "too_long")
+    .refine((v) => v === "" || pattern.test(v), message)
+    .transform((v) => (v === "" ? null : v))
+    .nullable();
 
 /** Accepts "", null, numbers and numeric strings (form inputs); empty becomes null. */
 const optionalNumber = (max: number, { int = false } = {}) =>
@@ -51,6 +54,10 @@ export const signUpSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
 });
+
+export const changePasswordSchema = z
+  .object({ current: z.string().min(1, "required").max(72, "too_long"), password: passwordSchema, confirm: z.string() })
+  .refine((v) => v.password === v.confirm, { message: "passwords_mismatch", path: ["confirm"] });
 
 export const forgotPasswordSchema = z.object({ email: emailSchema });
 
@@ -80,8 +87,8 @@ export const profileSchema = z.object({
       .refine((v) => v === "" || z.email().safeParse(v).success, "invalid_email")
       .transform((v) => (v === "" ? null : v.toLowerCase()))
       .nullable(),
-    facebook: url,
-    website: url,
+    facebook: url(/^https:\/\/([a-z0-9-]+\.)?(facebook|fb)\.com(\/\S*)?$/i, "invalid_facebook"),
+    website: url(),
   }),
 });
 export type ProfileInput = z.input<typeof profileSchema>;

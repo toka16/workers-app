@@ -23,13 +23,14 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteUrl()),
     title: { default: t("title"), template: `%s · ${(await getTranslations("common"))("brand")}` },
     description: t("description"),
+    // No site-wide `alternates`: children inherit them, so every page without its own would claim the
+    // home page as its translation. Pages that should be indexed declare their own.
     openGraph: { type: "website", siteName: (await getTranslations("common"))("brand") },
-    alternates: { languages: { ka: "/", en: "/en" } },
   };
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#00786f",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

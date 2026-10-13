@@ -11,6 +11,8 @@ export const ERROR_CODES = [
   "weak_password",
   "rate_limited",
   "upload_failed",
+  "limit_reached",
+  "captcha_failed",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

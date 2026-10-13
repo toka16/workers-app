@@ -27,14 +27,14 @@ export function HeroSearch({ categories, cities }: { categories: Category[]; cit
   }
 
   const selectClass =
-    "h-12 w-full appearance-none rounded-xl bg-transparent pr-3 pl-10 text-base font-medium text-foreground outline-none sm:text-sm";
+    "h-12 w-full appearance-none rounded-xl bg-transparent pr-3 pl-10 text-base font-medium text-foreground sm:text-sm";
 
   return (
     <form
       onSubmit={submit}
       className="grid grid-cols-1 gap-2 rounded-2xl bg-surface p-2 shadow-lift ring-1 ring-black/5 sm:grid-cols-[1fr_1fr_auto] sm:gap-0 sm:divide-x sm:divide-border"
     >
-      <label className="relative flex items-center rounded-xl bg-muted/60 sm:bg-transparent">
+      <label className="relative flex items-center rounded-xl bg-muted/60 transition-shadow focus-within:ring-4 focus-within:ring-ring/15 sm:bg-transparent">
         <Wrench className="pointer-events-none absolute left-3.5 size-5 text-primary" aria-hidden />
         <span className="sr-only">{t("categoryPlaceholder")}</span>
         <select value={category} onChange={(e) => setCategory(e.target.value)} className={selectClass}>
@@ -46,7 +46,7 @@ export function HeroSearch({ categories, cities }: { categories: Category[]; cit
           ))}
         </select>
       </label>
-      <label className="relative flex items-center rounded-xl bg-muted/60 sm:bg-transparent">
+      <label className="relative flex items-center rounded-xl bg-muted/60 transition-shadow focus-within:ring-4 focus-within:ring-ring/15 sm:bg-transparent">
         <MapPin className="pointer-events-none absolute left-3.5 size-5 text-primary" aria-hidden />
         <span className="sr-only">{t("cityPlaceholder")}</span>
         <select value={city} onChange={(e) => setCity(e.target.value)} className={selectClass}>

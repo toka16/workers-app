@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { forgotPasswordSchema } from "@/domain/schemas";
-import { useActionErrors } from "./use-action-form";
+import { useCaptcha } from "./captcha";
+import { safeAction, useActionErrors } from "./use-action-form";
 
 type Values = z.input<typeof forgotPasswordSchema>;
 
@@ -23,9 +24,12 @@ export function ForgotPasswordForm() {
   const form = useForm<Values>({ resolver: zodResolver(forgotPasswordSchema), defaultValues: { email: "" } });
   const { formError, handle } = useActionErrors(form.setError);
   const { errors, isSubmitting } = form.formState;
+  const captcha = useCaptcha();
 
   const onSubmit = form.handleSubmit(async (values) => {
-    if (handle(await forgotPasswordAction(values, locale))) setSentTo(values.email);
+    const result = await safeAction(() => forgotPasswordAction(values, locale, captcha.token));
+    captcha.reset();
+    if (handle(result)) setSentTo(values.email);
   });
 
   if (sentTo) return <Alert variant="success">{t("resetSentText", { email: sentTo })}</Alert>;
@@ -36,7 +40,8 @@ export function ForgotPasswordForm() {
       <Field id="email" label={t("email")} error={errors.email?.message}>
         <Input id="email" type="email" autoComplete="email" inputMode="email" aria-invalid={!!errors.email} {...form.register("email")} />
       </Field>
-      <Button type="submit" size="lg" disabled={isSubmitting}>
+      {captcha.widget}
+      <Button type="submit" size="lg" disabled={isSubmitting || !captcha.ready}>
         {isSubmitting && <LoaderCircle className="animate-spin" />}
         {t("sendResetLink")}
       </Button>

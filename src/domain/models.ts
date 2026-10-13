@@ -131,3 +131,22 @@ export interface AuthUser {
 
 export const STORAGE_BUCKETS = ["avatars", "portfolio"] as const;
 export type StorageBucket = (typeof STORAGE_BUCKETS)[number];
+
+/** Largest image file we store. The storage buckets enforce the same limit (see the storage migrations). */
+export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
+/** Per-worker caps; the database enforces the same numbers (see the hardening migration). */
+export const MAX_PORTFOLIO_IMAGES = 40;
+export const MAX_SERVICES = 30;
+
+/** Hosts the demo seed points images at. Stored paths are otherwise always relative storage paths. */
+const DEMO_IMAGE_HOSTS = ["picsum.photos", "i.pravatar.cc"];
+
+export function isDemoImageUrl(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === "https:" && DEMO_IMAGE_HOSTS.includes(hostname);
+  } catch {
+    return false;
+  }
+}

@@ -10,7 +10,9 @@ export default function NotFound() {
       <span className="grid size-16 place-items-center rounded-full bg-primary-soft text-primary">
         <Compass className="size-8" />
       </span>
-      <p className="font-display text-6xl font-extrabold text-primary/20">404</p>
+      <p aria-hidden className="font-display text-6xl font-extrabold text-primary/20">
+        404
+      </p>
       <h1 className="text-2xl font-bold">{t("errors.notFoundTitle")}</h1>
       <p className="max-w-md text-muted-foreground">{t("errors.notFoundText")}</p>
       <div className="flex flex-wrap justify-center gap-3">

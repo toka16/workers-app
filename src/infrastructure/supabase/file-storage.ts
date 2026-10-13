@@ -1,4 +1,4 @@
-import type { StorageBucket } from "@/domain/models";
+import { isDemoImageUrl, type StorageBucket } from "@/domain/models";
 import { DomainError } from "@/domain/errors";
 import type { FileStorage, UploadOptions } from "@/repositories";
 import type { TypedSupabaseClient } from "./types";
@@ -25,6 +25,13 @@ export class SupabaseFileStorage implements FileStorage {
     if (error) throw toDomainError(error);
   }
 
+  async list(bucket: StorageBucket, folder: string): Promise<string[]> {
+    const { data, error } = await this.db.storage.from(bucket).list(folder, { limit: 1000 });
+    if (error) throw toDomainError(error);
+    // Folders come back with a null id; we only store flat files.
+    return data.filter((f) => f.id !== null).map((f) => `${folder}/${f.name}`);
+  }
+
   getPublicUrl(bucket: StorageBucket, path: string): string {
     return supabasePublicUrl(bucket, path);
   }
@@ -36,7 +43,8 @@ export function isAbsoluteUrl(path: string): boolean {
 
 /** Pure URL builder; always uses the browser-facing URL even when the server talks to an internal one. */
 export function supabasePublicUrl(bucket: StorageBucket, path: string): string {
-  if (isAbsoluteUrl(path)) return path;
+  // Absolute URLs only come from the demo seed; anything else would let a worker embed arbitrary hosts.
+  if (isAbsoluteUrl(path)) return isDemoImageUrl(path) ? path : "";
   const encoded = path.split("/").map(encodeURIComponent).join("/");
   return `${supabaseEnv.publicUrl}/storage/v1/object/public/${bucket}/${encoded}`;
 }

@@ -14,7 +14,7 @@ export function Pagination({ filters, total }: { filters: SearchFilters; total: 
     return query ? `/workers?${query}` : "/workers";
   };
   return (
-    <nav className="flex items-center justify-between gap-3 pt-4" aria-label="pagination">
+    <nav className="flex items-center justify-between gap-3 pt-4" aria-label={t("pagination")}>
       {filters.page > 1 ? (
         <Button asChild variant="outline">
           <Link href={href(filters.page - 1)}>

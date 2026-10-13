@@ -36,6 +36,10 @@ export function pick<P, K extends keyof P>(
   method: K,
 ): NonNullable<P[K]> {
   const name = providerConfig[capability];
+  // The memory provider keeps a single process-wide session: every visitor would share one login.
+  if (name === "memory" && process.env.NODE_ENV === "production" && process.env.ALLOW_MEMORY_PROVIDER !== "1") {
+    throw new Error(`The memory provider is for tests and demos only (set ALLOW_MEMORY_PROVIDER=1 to override).`);
+  }
   const provider = registry[name];
   const factory = provider?.[method];
   if (!factory) {

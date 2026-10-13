@@ -3,15 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowDown, ArrowUp, LoaderCircle, Pencil, Plus, Tag, Trash } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { deleteServiceAction, reorderServicesAction, saveServiceAction } from "@/actions/dashboard";
-import { useActionErrors } from "@/components/auth/use-action-form";
+import { safeAction, useActionErrors } from "@/components/auth/use-action-form";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input, NativeSelect, Textarea } from "@/components/ui/input";
 import { CategoryIcon } from "@/components/workers/category-icon";
@@ -33,9 +33,19 @@ export function ServiceManager({
   defaultCategoryId: number | null;
 }) {
   const t = useTranslations("dashboard.services");
+  const tc = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const [editing, setEditing] = useState<Service | "new" | null>(null);
+  // Whether the open service form has unsaved input; closing it then asks before throwing it away.
+  const formDirty = useRef(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+
+  function closeEditor() {
+    formDirty.current = false;
+    setConfirmDiscard(false);
+    setEditing(null);
+  }
   const [items, setItems] = useState(services);
   const [, startTransition] = useTransition();
 
@@ -52,18 +62,23 @@ export function ServiceManager({
     next.splice(index + delta, 0, item);
     setItems(next); // optimistic
     startTransition(async () => {
-      const result = await reorderServicesAction(next.map((s) => s.id));
-      if (!result.ok) setItems(services);
+      const result = await safeAction(() => reorderServicesAction(next.map((s) => s.id)));
+      if (!result.ok) {
+        setItems(services);
+        toast.error(tc(`errors.${result.error}`));
+      }
       router.refresh();
     });
   }
 
   async function remove(id: string) {
-    const result = await deleteServiceAction(id);
-    if (result.ok) {
-      toast.success(t("deletedToast"));
-      router.refresh();
+    const result = await safeAction(() => deleteServiceAction(id));
+    if (!result.ok) {
+      toast.error(tc(`errors.${result.error}`));
+      return;
     }
+    toast.success(t("deletedToast"));
+    router.refresh();
   }
 
   return (
@@ -92,10 +107,18 @@ export function ServiceManager({
             return (
               <div key={s.id} className="flex flex-wrap items-center gap-3 p-4 sm:flex-nowrap">
                 <div className="flex flex-col">
-                  <Button variant="ghost" size="icon-sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label={t("moveUp")}>
+                  {/* Compact with a mouse, full 44px targets on touch screens. */}
+                  <Button variant="ghost" size="icon-sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label={t("moveUp")} className="pointer-coarse:size-11">
                     <ArrowUp />
                   </Button>
-                  <Button variant="ghost" size="icon-sm" disabled={i === items.length - 1} onClick={() => move(i, 1)} aria-label={t("moveDown")}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={i === items.length - 1}
+                    onClick={() => move(i, 1)}
+                    aria-label={t("moveDown")}
+                    className="pointer-coarse:size-11"
+                  >
                     <ArrowDown />
                   </Button>
                 </div>
@@ -137,19 +160,44 @@ export function ServiceManager({
         </Card>
       )}
 
-      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+      <Dialog
+        open={editing !== null}
+        onOpenChange={(open) => {
+          if (open) return;
+          if (formDirty.current) setConfirmDiscard(true);
+          else closeEditor();
+        }}
+      >
         <DialogContent className="max-h-[92dvh]" aria-describedby={undefined}>
           {editing !== null && (
             <ServiceForm
               service={editing === "new" ? null : editing}
               categories={categories}
               defaultCategoryId={defaultCategoryId}
+              onDirtyChange={(dirty) => (formDirty.current = dirty)}
               onDone={() => {
-                setEditing(null);
+                closeEditor();
                 router.refresh();
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tc("dashboard.editor.discardTitle")}</DialogTitle>
+            <DialogDescription>{t("discardText")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDiscard(false)}>
+              {tc("dashboard.editor.keepEditing")}
+            </Button>
+            <Button variant="destructive" onClick={closeEditor}>
+              {tc("dashboard.editor.discard")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -169,11 +217,13 @@ function ServiceForm({
   service,
   categories,
   defaultCategoryId,
+  onDirtyChange,
   onDone,
 }: {
   service: Service | null;
   categories: Category[];
   defaultCategoryId: number | null;
+  onDirtyChange: (dirty: boolean) => void;
   onDone: () => void;
 }) {
   const t = useTranslations();
@@ -189,12 +239,16 @@ function ServiceForm({
       priceTo: service?.priceTo?.toString() ?? "",
     },
   });
-  const { errors, isSubmitting } = form.formState;
+  const { errors, isSubmitting, isDirty } = form.formState;
   const { formError, handle } = useActionErrors(form.setError);
   const negotiable = useWatch({ control: form.control, name: "priceUnit" }) === "negotiable";
 
+  useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   const onSubmit = form.handleSubmit(async (values) => {
-    if (handle(await saveServiceAction(service?.id ?? null, values))) {
+    if (handle(await safeAction(() => saveServiceAction(service?.id ?? null, values)))) {
       toast.success(t("dashboard.services.savedToast"));
       onDone();
     }

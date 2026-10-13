@@ -40,10 +40,10 @@ export function ChipPicker({
             onClick={() => toggle(o.id)}
             disabled={!selected && !!max && value.length >= max}
             className={cn(
-              "inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-all disabled:opacity-40",
+              "inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-all disabled:opacity-50",
               selected
                 ? "border-primary bg-primary text-primary-foreground shadow-soft"
-                : "border-input bg-surface text-foreground hover:border-primary/50 hover:bg-primary-soft/50",
+                : "border-input-border bg-surface text-foreground hover:border-primary/50 hover:bg-primary-soft/50",
             )}
           >
             {selected ? <Check className="size-4" /> : o.icon}

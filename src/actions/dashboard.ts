@@ -2,14 +2,12 @@
 
 import { updateTag } from "next/cache";
 import { DomainError } from "@/domain/errors";
-import type { Service } from "@/domain/models";
-import { slugCandidates } from "@/domain/profile";
-import { captionSchema, passwordSchema, profileSchema, serviceSchema } from "@/domain/schemas";
+import { MAX_PORTFOLIO_IMAGES, MAX_SERVICES, STORAGE_BUCKETS, type Service } from "@/domain/models";
+import { liveProfileErrors, slugCandidates } from "@/domain/profile";
+import { captionSchema, changePasswordSchema, profileSchema, serviceSchema } from "@/domain/schemas";
 import { getRepositories } from "@/infrastructure/container.server";
 import { TAGS } from "@/lib/data/public";
 import { fail, invalid, ok, type ActionResult } from "./result";
-
-const MAX_PORTFOLIO_IMAGES = 40;
 
 /** Every action re-authenticates on its own: never trust the client for authorization. */
 async function authorized() {
@@ -26,8 +24,9 @@ function invalidate(workerId: string, slug?: string) {
   if (slug) updateTag(`worker-slug:${slug}`);
 }
 
-function ownedPath(userId: string, path: string): boolean {
-  return path.startsWith(`${userId}/`) && !path.includes("..");
+/** A file directly inside the user's own storage folder; the database checks the same shape. */
+function ownedPath(userId: string, path: unknown): boolean {
+  return typeof path === "string" && path.startsWith(`${userId}/`) && /^[A-Za-z0-9._-]+$/.test(path.slice(userId.length + 1)) && !path.includes("..");
 }
 
 // ---------------------------------------------------------------- profile
@@ -40,6 +39,11 @@ export async function saveProfileAction(input: unknown): Promise<ActionResult> {
     const { user, repos } = await authorized();
     const before = await repos.workers.getById(user.id);
     if (!before) throw new DomainError("not_found");
+    // Saves go live immediately, so a published profile can't drop below what publishing requires.
+    if (before.isPublished) {
+      const fieldErrors = liveProfileErrors(data);
+      if (Object.keys(fieldErrors).length > 0) return { ok: false, error: "validation", fieldErrors };
+    }
 
     // Try the preferred address first; if someone already has it, fall back to the next candidate.
     const candidates = slugCandidates(before, data.fullName);
@@ -110,7 +114,11 @@ export async function saveServiceAction(serviceId: string | null, input: unknown
     const { user, repos } = await authorized();
     let created: Service | null = null;
     if (serviceId) await repos.services.update(user.id, serviceId, data);
-    else created = await repos.services.create(user.id, data);
+    else {
+      const existing = await repos.services.listByWorker(user.id);
+      if (existing.length >= MAX_SERVICES) throw new DomainError("limit_reached");
+      created = await repos.services.create(user.id, data);
+    }
     invalidate(user.id);
     return ok(created);
   } catch (error) {
@@ -149,7 +157,7 @@ export async function addPortfolioImageAction(image: { path: string; thumbPath: 
     const existing = await repos.portfolio.listByWorker(user.id);
     if (existing.length >= MAX_PORTFOLIO_IMAGES) {
       await repos.storage.remove("portfolio", [image.path, image.thumbPath]).catch(() => undefined);
-      throw new DomainError("validation", "too many images");
+      throw new DomainError("limit_reached");
     }
     await repos.portfolio.add(user.id, { path: image.path, thumbPath: image.thumbPath, caption: "" });
     invalidate(user.id);
@@ -199,12 +207,16 @@ export async function reorderPortfolioAction(imageIds: string[]): Promise<Action
 
 // ---------------------------------------------------------------- account
 
-export async function changePasswordAction(password: unknown): Promise<ActionResult> {
-  const parsed = passwordSchema.safeParse(password);
+/** Requires the current password, so a hijacked session alone can't take over the account. */
+export async function changePasswordAction(input: unknown): Promise<ActionResult> {
+  const parsed = changePasswordSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   try {
     const { repos } = await authorized();
-    await repos.auth.updatePassword(parsed.data);
+    if (!(await repos.auth.verifyPassword(parsed.data.current))) {
+      return { ok: false, error: "validation", fieldErrors: { current: "wrong_password" } };
+    }
+    await repos.auth.updatePassword(parsed.data.password);
     return ok();
   } catch (error) {
     return fail(error);
@@ -215,11 +227,12 @@ export async function deleteAccountAction(): Promise<ActionResult> {
   try {
     const { user, repos } = await authorized();
     const profile = await repos.workers.getById(user.id);
-    if (profile) {
-      // Files first: once the account is gone, storage policies no longer let us delete them.
-      const images = profile.portfolio.flatMap((i) => [i.image.path, i.thumb.path]);
-      await repos.storage.remove("portfolio", images).catch(() => undefined);
-      if (profile.avatar) await repos.storage.remove("avatars", [profile.avatar.path]).catch(() => undefined);
+    // Files first: once the account is gone, storage policies no longer let us delete them. List the
+    // whole folder (not just the paths in the database) so abandoned uploads go too, and stop if that
+    // fails rather than leave public photos of a deleted account behind.
+    for (const bucket of STORAGE_BUCKETS) {
+      const files = await repos.storage.list(bucket, user.id);
+      if (files.length) await repos.storage.remove(bucket, files);
     }
     await repos.auth.deleteAccount();
     invalidate(user.id, profile?.slug);

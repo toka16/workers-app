@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { ChangePasswordForm } from "@/components/dashboard/change-password-form";
 import { DeleteAccount } from "@/components/dashboard/delete-account";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export default async function AccountPage() {
               <Label htmlFor="login-email">{t("email")}</Label>
               <Input id="login-email" value={user.email} readOnly disabled />
             </div>
-            <ResetPasswordForm submitLabel={t("changePassword")} onDoneHref="/dashboard/account" />
+            <ChangePasswordForm />
           </CardContent>
         </Card>
 

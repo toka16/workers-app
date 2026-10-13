@@ -13,14 +13,23 @@ import { PriceTag } from "./price-tag";
 import { ShareButton } from "./share-button";
 
 /** Public profile page body. Also used for the owner's draft preview in the dashboard. */
-export function WorkerProfileView({ worker, categories }: { worker: WorkerProfile; categories: Category[] }) {
+export function WorkerProfileView({
+  worker,
+  categories,
+  preview = false,
+}: {
+  worker: WorkerProfile;
+  categories: Category[];
+  /** Owner's dashboard preview: the mobile contact bar renders inline instead of sticking to the viewport. */
+  preview?: boolean;
+}) {
   const t = useTranslations();
   const locale = useLocale();
   const format = useFormatter();
   const cover = worker.portfolio[0]?.image.url;
 
   return (
-    <div className="pb-28 lg:pb-16">
+    <div className="lg:pb-16">
       {/* Cover */}
       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-hero-from to-hero-to sm:h-56">
         {cover && (
@@ -29,16 +38,17 @@ export function WorkerProfileView({ worker, categories }: { worker: WorkerProfil
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
         <div className="container-page relative pt-4">
+          {/* In the dashboard preview, "back" means back to editing, not out to the public search. */}
           <Link
-            href="/workers"
+            href={preview ? "/dashboard/profile/review" : "/workers"}
             className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3 py-1.5 text-sm font-medium text-white backdrop-blur hover:bg-black/40"
           >
-            <ArrowLeft className="size-4" /> {t("profile.backToSearch")}
+            <ArrowLeft className="size-4" /> {preview ? t("profile.backToEditor") : t("profile.backToSearch")}
           </Link>
         </div>
       </div>
 
-      <div className="container-page -mt-16 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_22rem]">
+      <div className="container-page -mt-16 grid grid-cols-1 gap-8 pb-10 lg:grid-cols-[1fr_22rem] lg:pb-0">
         <div className="grid min-w-0 content-start gap-8">
           {/* Header */}
           <header className="grid gap-4">
@@ -136,7 +146,7 @@ export function WorkerProfileView({ worker, categories }: { worker: WorkerProfil
         </aside>
       </div>
 
-      <MobileContactBar contacts={worker.contacts} />
+      <MobileContactBar contacts={worker.contacts} inline={preview} />
     </div>
   );
 }

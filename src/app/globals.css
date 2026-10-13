@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 /*
  * Design tokens. Every component reads colors, radii and shadows from here, so the whole
  * UI stays consistent and can be re-themed in one place.
  *   primary  — deep teal: trust, calm, "home"
  *   accent   — warm amber: energy, used for the main call-to-action buttons
+ *   warning  — darker orange for "required / unsaved" states, so accent stays a CTA colour
+ * "*-strong" variants are for text on the matching "*-soft" background (WCAG AA >= 4.5:1);
+ * the plain tokens are for fills, dots and borders (>= 3:1 against the surface).
+ * Light theme only: there is no dark-mode toggle, so no `.dark` overrides are shipped.
  */
 :root {
   --background: oklch(0.99 0.004 95);
@@ -17,6 +19,8 @@
   --muted-foreground: oklch(0.52 0.03 250);
   --border: oklch(0.92 0.01 250);
   --input: oklch(0.89 0.012 250);
+  /* Borders of form controls (inputs, checkboxes, switch track): 3.2:1 on the surface. */
+  --input-border: oklch(0.65 0.02 250);
   --ring: oklch(0.6 0.118 184.7);
 
   --primary: oklch(0.511 0.096 186.4);
@@ -29,11 +33,26 @@
   --accent-hover: oklch(0.72 0.17 58);
   --accent-foreground: oklch(0.25 0.05 50);
   --accent-soft: oklch(0.97 0.04 85);
+  --accent-light: oklch(0.87 0.15 85);
 
   --success: oklch(0.6 0.15 155);
+  --success-strong: oklch(0.48 0.12 155);
+  --success-foreground: oklch(1 0 0);
   --success-soft: oklch(0.96 0.04 155);
-  --destructive: oklch(0.577 0.215 27.3);
+  --warning: oklch(0.66 0.16 55);
+  --warning-strong: oklch(0.5 0.13 50);
+  --warning-soft: oklch(0.97 0.04 75);
+  --destructive: oklch(0.53 0.2 27.3);
+  --destructive-foreground: oklch(1 0 0);
   --destructive-soft: oklch(0.97 0.02 25);
+
+  /* Messenger brand fills, darkened so white labels pass AA (>= 5.4:1). */
+  --brand-whatsapp: #0b7a3e;
+  --brand-whatsapp-hover: #096632;
+  --brand-telegram: #1a6fa0;
+  --brand-telegram-hover: #155b85;
+  --brand-viber: #5a4bd1;
+  --brand-viber-hover: #4a3cbf;
 
   --hero-from: oklch(0.3 0.06 192);
   --hero-to: oklch(0.42 0.085 186);
@@ -43,23 +62,6 @@
   --shadow-lift: 0 2px 4px oklch(0.2 0.02 250 / 0.04), 0 16px 40px -12px oklch(0.2 0.04 250 / 0.18);
 }
 
-.dark {
-  --background: oklch(0.17 0.02 230);
-  --foreground: oklch(0.96 0.01 220);
-  --surface: oklch(0.21 0.02 230);
-  --muted: oklch(0.25 0.02 230);
-  --muted-foreground: oklch(0.72 0.02 230);
-  --border: oklch(0.3 0.02 230);
-  --input: oklch(0.34 0.02 230);
-  --primary: oklch(0.7 0.12 182);
-  --primary-hover: oklch(0.75 0.12 182);
-  --primary-foreground: oklch(0.2 0.04 190);
-  --primary-soft: oklch(0.28 0.05 188);
-  --primary-soft-foreground: oklch(0.88 0.06 180);
-  --accent-soft: oklch(0.3 0.05 70);
-  --success-soft: oklch(0.28 0.05 155);
-  --destructive-soft: oklch(0.3 0.06 25);
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -70,6 +72,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-input-border: var(--input-border);
   --color-ring: var(--ring);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -80,10 +83,23 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-light: var(--accent-light);
   --color-success: var(--success);
+  --color-success-strong: var(--success-strong);
+  --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-strong: var(--warning-strong);
+  --color-warning-soft: var(--warning-soft);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-soft: var(--destructive-soft);
+  --color-brand-whatsapp: var(--brand-whatsapp);
+  --color-brand-whatsapp-hover: var(--brand-whatsapp-hover);
+  --color-brand-telegram: var(--brand-telegram);
+  --color-brand-telegram-hover: var(--brand-telegram-hover);
+  --color-brand-viber: var(--brand-viber);
+  --color-brand-viber-hover: var(--brand-viber-hover);
   --color-hero-from: var(--hero-from);
   --color-hero-to: var(--hero-to);
 
@@ -227,8 +243,8 @@
   height: 1.25rem;
   flex-shrink: 0;
   cursor: pointer;
-  border: 1px solid var(--color-input);
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
   transition:
     background-color 150ms,

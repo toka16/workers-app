@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useCallback, useTransition, type ReactNode } from "react";
+import { createContext, use, useCallback, useEffect, useRef, useTransition, type ReactNode } from "react";
 import type { SearchFilters } from "@/domain/models";
 import { filtersToSearchParams } from "@/domain/schemas";
 import { useRouter } from "@/i18n/navigation";
@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 interface SearchContextValue {
   filters: SearchFilters;
   pending: boolean;
-  update: (patch: Partial<SearchFilters>) => void;
+  /**
+   * Discrete changes (checkboxes, sort, chips) push a history entry so Back undoes them; pass
+   * `{ replace: true }` for typing, where every pause would otherwise flood the history.
+   */
+  update: (patch: Partial<SearchFilters> | ((latest: SearchFilters) => Partial<SearchFilters>), options?: { replace?: boolean }) => void;
   reset: () => void;
 }
 
@@ -26,10 +30,19 @@ export function SearchShell({ filters, children }: { filters: SearchFilters; chi
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
+  // The latest requested filters. Debounced inputs fire after a delay, and a change made in the meantime
+  // (e.g. a category toggled while the URL is still updating) must not be reverted by stale props.
+  const latest = useRef(filters);
+  useEffect(() => {
+    latest.current = filters;
+  }, [filters]);
+
   const navigate = useCallback(
-    (next: Partial<SearchFilters>) => {
+    (next: SearchFilters, replace = false) => {
+      latest.current = next;
       const query = filtersToSearchParams(next).toString();
-      startTransition(() => router.replace(query ? `/workers?${query}` : "/workers", { scroll: false }));
+      const href = query ? `/workers?${query}` : "/workers";
+      startTransition(() => (replace ? router.replace(href, { scroll: false }) : router.push(href, { scroll: false })));
     },
     [router],
   );
@@ -38,8 +51,11 @@ export function SearchShell({ filters, children }: { filters: SearchFilters; chi
     filters,
     pending,
     // Any filter change starts again from page 1.
-    update: (patch) => navigate({ ...filters, page: 1, ...patch }),
-    reset: () => navigate({ q: filters.q, sort: filters.sort }),
+    update: (patch, options) => {
+      const base = latest.current;
+      navigate({ ...base, page: 1, ...(typeof patch === "function" ? patch(base) : patch) }, options?.replace);
+    },
+    reset: () => navigate({ ...latest.current, page: 1, categories: [], cities: [], priceMax: null, minExperience: null, withPhotos: false }),
   };
 
   return <SearchContext value={value}>{children}</SearchContext>;

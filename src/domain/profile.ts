@@ -1,5 +1,6 @@
 import { slugify } from "@/lib/slugify";
 import type { WorkerProfile } from "./models";
+import type { ProfileData } from "./schemas";
 
 export type CompletenessItem = "name" | "headline" | "avatar" | "contact" | "city" | "category" | "service" | "portfolio";
 
@@ -32,6 +33,19 @@ export function completenessPercent(profile: WorkerProfile): number {
 export function missingForPublish(profile: WorkerProfile): CompletenessItem[] {
   const checklist = profileChecklist(profile);
   return REQUIRED_FOR_PUBLISH.filter((item) => !checklist[item]);
+}
+
+/**
+ * A live profile must keep what publishing required. Returns field errors (i18n keys under "validation.*")
+ * for edits that would remove all cities, categories or contacts; empty when the edit is fine.
+ * The name is already enforced by the profile schema.
+ */
+export function liveProfileErrors(data: Pick<ProfileData, "cityIds" | "categoryIds" | "contacts">): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (data.categoryIds.length === 0) errors.categoryIds = "required_while_live";
+  if (data.cityIds.length === 0) errors.cityIds = "required_while_live";
+  if (!hasAnyContact(data)) errors.contacts = "contact_required_while_live";
+  return errors;
 }
 
 /** Placeholder address given at sign-up (see handle_new_user in the migrations). */

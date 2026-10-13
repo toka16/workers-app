@@ -24,18 +24,26 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
   const id = useId();
   const [price, setPrice] = useState(filters.priceMax?.toString() ?? "");
 
-  // Keep the input in sync when filters change elsewhere (chips, reset, back button).
+  // Keep the input in sync when filters change elsewhere (chips, reset, back button), but not when the
+  // URL merely catches up with the value we sent: digits typed since then must survive.
   const [syncedPrice, setSyncedPrice] = useState(filters.priceMax);
+  const [sentPrice, setSentPrice] = useState(filters.priceMax);
   if (syncedPrice !== filters.priceMax) {
     setSyncedPrice(filters.priceMax);
-    setPrice(filters.priceMax?.toString() ?? "");
+    if (filters.priceMax !== sentPrice) {
+      setSentPrice(filters.priceMax);
+      setPrice(filters.priceMax?.toString() ?? "");
+    }
   }
 
   // Debounce typing in the price field.
   useEffect(() => {
     const value = price.trim() === "" ? null : Number.parseInt(price, 10);
-    if (value === filters.priceMax || (value !== null && Number.isNaN(value))) return;
-    const timer = setTimeout(() => update({ priceMax: value }), 500);
+    if (value === sentPrice || (value !== null && Number.isNaN(value))) return;
+    const timer = setTimeout(() => {
+      setSentPrice(value);
+      update({ priceMax: value }, { replace: true });
+    }, 500);
     return () => clearTimeout(timer);
   }, [price]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -54,10 +62,10 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
           emptyLabel={t("allServices")}
         >
           {categories.map((c) => (
-            <label key={c.slug} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
+            <label key={c.slug} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
               <Checkbox
                 checked={filters.categories.includes(c.slug)}
-                onChange={() => update({ categories: toggle(filters.categories, c.slug) })}
+                onChange={() => update((f) => ({ categories: toggle(f.categories, c.slug) }))}
               />
               <CategoryIcon icon={c.icon} className="size-4 text-primary" />
               {localized(c.name, locale)}
@@ -68,10 +76,10 @@ export function FilterPanel({ categories, cities }: { categories: Category[]; ci
         <FilterDropdown title={t("cities")} selected={selectedNames(cities, filters.cities)} emptyLabel={t("allCities")}>
           <div className="grid grid-cols-2 lg:grid-cols-1">
             {cities.map((c) => (
-              <label key={c.slug} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
+              <label key={c.slug} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-muted">
                 <Checkbox
                   checked={filters.cities.includes(c.slug)}
-                  onChange={() => update({ cities: toggle(filters.cities, c.slug) })}
+                  onChange={() => update((f) => ({ cities: toggle(f.cities, c.slug) }))}
                 />
                 {localized(c.name, locale)}
               </label>

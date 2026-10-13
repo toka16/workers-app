@@ -9,7 +9,9 @@ export interface UploadOptions {
 export interface FileStorage {
   upload(bucket: StorageBucket, path: string, file: Blob, options: UploadOptions): Promise<string>;
   remove(bucket: StorageBucket, paths: string[]): Promise<void>;
-  /** Public URL for a stored path. Absolute URLs are returned unchanged (e.g. seeded demo data). */
+  /** Paths of every file directly inside `folder` (e.g. a user's own folder). */
+  list(bucket: StorageBucket, folder: string): Promise<string[]>;
+  /** Public URL for a stored path. Absolute URLs are only kept for the seeded demo image hosts. */
   getPublicUrl(bucket: StorageBucket, path: string): string;
 }
 

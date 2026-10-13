@@ -24,12 +24,12 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo({ className, light }: { className?: string; light?: boolean }) {
+export function Logo({ className }: { className?: string }) {
   const t = useTranslations("common");
   return (
     <Link href="/" className={cn("inline-flex items-center gap-2.5 rounded-lg", className)}>
       <LogoMark />
-      <span className={cn("font-display text-xl font-extrabold tracking-tight", light ? "text-white" : "text-foreground")}>
+      <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
         {t("brand")}
       </span>
     </Link>

@@ -1,15 +1,8 @@
-import { getTranslations } from "next-intl/server";
-import { PageHeader } from "@/components/dashboard/page-header";
-import { ServiceManager } from "@/components/dashboard/service-manager";
-import { getOwnProfile } from "@/lib/data/dashboard";
-import { getCategories } from "@/lib/data/public";
+import { getLocale } from "next-intl/server";
+import { stepHref } from "@/domain/profile-steps";
+import { redirect } from "@/i18n/navigation";
 
+/** Moved into the profile editor; kept so old links and bookmarks still work. */
 export default async function ServicesPage() {
-  const [{ profile }, categories, t] = await Promise.all([getOwnProfile(), getCategories(), getTranslations("dashboard.services")]);
-  return (
-    <>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
-      <ServiceManager services={profile.services} categories={categories} defaultCategoryId={profile.categories[0]?.id ?? null} />
-    </>
-  );
+  redirect({ href: stepHref("services"), locale: await getLocale() });
 }

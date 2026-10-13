@@ -72,6 +72,8 @@ export class MemoryStore {
   files = new Map<string, Blob>();
   /** The "session" — which user is signed in. */
   currentUserId: string | null = null;
+  /** Whether that session came from an e-mail link rather than a password sign-in. */
+  emailLinkSession = false;
 
   createUser(email: string, password: string, fullName = "", confirmed = true): MemoryUser {
     const id = crypto.randomUUID();
@@ -103,6 +105,7 @@ export class MemoryStore {
     this.images.clear();
     this.files.clear();
     this.currentUserId = null;
+    this.emailLinkSession = false;
   }
 }
 

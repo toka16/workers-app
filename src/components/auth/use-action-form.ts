@@ -1,5 +1,6 @@
 "use client";
 
+import { unstable_rethrow } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
@@ -26,4 +27,18 @@ export function useActionErrors<T extends FieldValues>(setError: UseFormSetError
   }
 
   return { formError, setFormError, handle };
+}
+
+/**
+ * Calls a Server Action without letting a dropped connection or a crashed request reject silently:
+ * anything thrown becomes an `unknown` result, which callers already show like any other error.
+ */
+export async function safeAction<R>(call: () => Promise<ActionResult<R>>): Promise<ActionResult<R>> {
+  try {
+    return await call();
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error(error);
+    return { ok: false, error: "unknown" };
+  }
 }

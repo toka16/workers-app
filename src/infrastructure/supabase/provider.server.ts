@@ -21,7 +21,7 @@ const client = (context: ServerContext): Promise<TypedSupabaseClient> | TypedSup
 
 export const supabaseServerProvider: ServerProvider = {
   async createAuth() {
-    return new SupabaseAuthRepository(await requestClient());
+    return new SupabaseAuthRepository(await requestClient(), createSupabasePublicClient);
   },
 
   async createStorage(context) {

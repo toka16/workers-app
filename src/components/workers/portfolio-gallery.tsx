@@ -46,7 +46,7 @@ export function PortfolioGallery({ images, workerName }: { images: PortfolioImag
               className="aspect-[4/3] size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {img.caption && (
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-6 pb-2 text-left text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-6 pb-2 text-left text-xs font-medium text-white transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-visible:opacity-100">
                 {img.caption}
               </span>
             )}

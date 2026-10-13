@@ -15,6 +15,7 @@ const AUTH_CODES: Record<string, ErrorCode> = {
   weak_password: "weak_password",
   over_email_send_rate_limit: "rate_limited",
   over_request_rate_limit: "rate_limited",
+  captcha_failed: "captcha_failed",
   session_not_found: "unauthorized",
   no_authorization: "unauthorized",
   bad_jwt: "unauthorized",
@@ -24,6 +25,7 @@ const AUTH_CODES: Record<string, ErrorCode> = {
 export function toDomainError(error: SupabaseLikeError): DomainError {
   const message = error.message ?? "Supabase error";
   if (error.code && AUTH_CODES[error.code]) return new DomainError(AUTH_CODES[error.code], message);
+  if (message.startsWith("limit_reached")) return new DomainError("limit_reached", message);
   if (message.startsWith("profile_incomplete")) {
     return new DomainError("profile_incomplete", message, message.split(":")[1]?.trim());
   }

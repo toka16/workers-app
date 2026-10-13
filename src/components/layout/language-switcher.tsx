@@ -3,6 +3,7 @@
 import { Languages } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
+import { useEditorGuard } from "@/components/dashboard/profile-editor/editor-guard";
 import { useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // In the dashboard, switching language reloads the page: unsaved edits would be lost without asking.
+  const guard = useEditorGuard();
 
   function switchTo(next: string) {
     // Read the URL at click time instead of usePathname/useSearchParams: those hooks would make
@@ -35,10 +38,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         <button
           key={l}
           type="button"
-          onClick={() => l !== locale && switchTo(l)}
+          onClick={() => l !== locale && (guard ? guard.confirm(() => switchTo(l)) : switchTo(l))}
           aria-pressed={l === locale}
           className={cn(
-            "rounded-full px-2.5 py-1.5 transition-colors",
+            // The extra hit area makes the small pills ≥44px tall to tap without changing their look.
+            "relative rounded-full px-2.5 py-1.5 transition-colors after:absolute after:inset-x-0 after:-inset-y-2",
             l === locale ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >

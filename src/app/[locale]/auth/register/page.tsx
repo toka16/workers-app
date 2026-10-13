@@ -4,8 +4,15 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { RegisterForm } from "@/components/auth/register-form";
 import { Link } from "@/i18n/navigation";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations("auth"))("registerTitle") };
+export async function generateMetadata({ params }: PageProps<"/[locale]/auth/register">): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: (await getTranslations("auth"))("registerTitle"),
+    alternates: {
+      canonical: locale === "ka" ? "/auth/register" : "/en/auth/register",
+      languages: { ka: "/auth/register", en: "/en/auth/register" },
+    },
+  };
 }
 
 export default async function RegisterPage() {

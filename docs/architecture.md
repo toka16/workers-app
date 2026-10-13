@@ -32,6 +32,8 @@ Each capability is chosen independently with an environment variable:
 | `NEXT_PUBLIC_DB_PROVIDER`       | workers, services, portfolio, reference data | `supabase`, `memory` |
 | `NEXT_PUBLIC_STORAGE_PROVIDER`  | `FileStorage`                       | `supabase`, `memory` |
 
+`memory` keeps one process-wide session, so production builds refuse it (tests and demos only).
+
 To add a provider (for example S3 / Cloudflare R2 for images):
 
 1. Implement the interface, e.g. `src/infrastructure/s3/file-storage.ts implements FileStorage`.
